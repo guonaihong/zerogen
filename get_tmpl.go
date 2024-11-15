@@ -25,6 +25,7 @@ var defaultTemplate []byte
 var goZeroApiTemplate []byte
 
 func getFileContent(fileName string, defaultContent []byte) ([]byte, error) {
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user home directory: %w", err)

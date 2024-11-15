@@ -1,27 +1,27 @@
-type_mappings:
-  uuid:
-    default: "string"
-    gorm: "uuid.UUID"
-    gozero: "string"
-  int:
-    default: "int"
-  smallint:
-    default: "int16"
-  bigint:
-    default: "int64"
-  varchar:
-    default: "string"
-  text:
-    default: "string"
-  bool:
-    default: "bool"
-  float:
-    default: "float32"
-  double:
-    default: "float64"
-  timestamp:
-    default: "time.Time"
-  "timestamp with time zone":
-    default: "time.Time"
-  date:
-    default: "time.Time"
+uuid:
+  default: "string"
+  gorm: "uuid.UUID"
+  gozero: "string"
+int:
+  default: "int"
+smallint:
+  default: "int16"
+bigint:
+  default: "int64"
+varchar:
+  default: "string"
+text:
+  default: "string"
+bool:
+  default: "bool"
+float:
+  default: "float32"
+double:
+  default: "float64"
+timestamp:
+  default: "time.Time"
+  gozero: string
+"timestamp with time zone":
+  default: "time.Time"
+date:
+  default: "time.Time"
