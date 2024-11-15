@@ -3,8 +3,6 @@ package zerogen
 import (
 	_ "embed"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"gorm.io/driver/mysql"
@@ -20,73 +18,12 @@ type ZeroGen struct {
 	Table          string `clop:"long" usage:"table name"`
 }
 
-func getTemplateContent(templateFile string) ([]byte, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user home directory: %w", err)
-	}
-
-	var templateData []byte
-	var templateFilePath string
-	zeroGenDir := filepath.Join(homeDir, ".zero-gen")
-	if _, err = os.Stat(zeroGenDir); os.IsNotExist(err) {
-		goto fail
-	}
-
-	templateFilePath = filepath.Join(zeroGenDir, templateFile)
-	if _, err = os.Stat(templateFilePath); os.IsNotExist(err) {
-		goto fail
-	}
-	if templateData, err = os.ReadFile(templateFilePath); err != nil {
-		return nil, fmt.Errorf("failed to read template file: %w", err)
-	}
-
-fail:
-	if templateData == nil {
-		templateData = []byte(defaultTemplate) // Assuming defaultTemplate is a variable containing the default template content
-	}
-	return templateData, nil
-}
-
-func (z *ZeroGen) GenerateGormModel(db *gorm.DB, tableName string, templateFile string) (string, error) {
-	// Get the table schema
-	var columns []gorm.ColumnType
-	columns, err := db.Migrator().ColumnTypes(tableName)
-	if err != nil {
-		return "", fmt.Errorf("failed to get column types: %w", err)
-	}
-
-	// Convert columns to ColumnSchema
-	var columnSchemas []ColumnSchema
-	for _, column := range columns {
-		name := column.Name()
-		nullable, _ := column.Nullable()
-		length, _ := column.Length()
-		defaultValue, _ := column.DefaultValue()
-		dataType, _ := column.ColumnType()
-		defaultValue, ok := column.DefaultValue()
-		var defaultValueStr *string
-		if ok {
-			defaultValueStr = &defaultValue
-		}
-
-		columnSchemas = append(columnSchemas, ColumnSchema{
-			ColumnName:   name,
-			ColumnType:   dataType,
-			Nullable:     nullable,
-			Length:       length,
-			DefaultValue: defaultValueStr,
-		})
-	}
-
-	// Get type mappings
-	typeMappings, err := GetTypeMappings()
-	if err != nil {
-		return "", fmt.Errorf("failed to get type mappings: %w", err)
-	}
-
+func GenerateGormModel(db *gorm.DB,
+	tableName string,
+	columnSchemas []ColumnSchema,
+	typeMappings map[string]TypeMapping) (string, error) {
 	// Generate the struct
-	structCode, err := GenerateStruct(tableName, columnSchemas, typeMappings, templateFile)
+	structCode, err := GenerateStruct(tableName, columnSchemas, typeMappings)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate struct: %w", err)
 	}
@@ -114,9 +51,27 @@ func (z *ZeroGen) Run() error {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	res, err := z.GenerateGormModel(db, z.Table, "gorm_model.tmpl")
+	columns, err := GetTableSchema(db, z.Table)
+	if err != nil {
+		return fmt.Errorf("failed to get table schema: %w", err)
+	}
+
+	// Get type mappings
+	typeMappings, err := GetTypeMappings()
+	if err != nil {
+		return fmt.Errorf("failed to get type mappings: %w", err)
+	}
+
+	res, err := GenerateGormModel(db, z.Table, columns, typeMappings)
 	if err != nil {
 		return fmt.Errorf("failed to generate gorm model: %w", err)
+	}
+
+	fmt.Println(res)
+
+	res, err = GenerateApiService(z.Table, columns, typeMappings, "api", "v1", z.Table, z.Table)
+	if err != nil {
+		return fmt.Errorf("failed to generate go zero api: %w", err)
 	}
 	fmt.Println(res)
 	return nil

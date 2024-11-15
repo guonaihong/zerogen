@@ -3,7 +3,6 @@ package zerogen
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"strings"
 	"text/template"
 )
@@ -44,12 +43,12 @@ func GoType(columnType string, nullable bool, typeMappings map[string]TypeMappin
 }
 
 // GenerateStruct generates a struct based on the schema info using Go templates
-func GenerateStruct(tableName string, columns []ColumnSchema, typeMappings map[string]TypeMapping, templateFile string) (string, error) {
-	// Load the template from an external file
-	tmplContent, err := os.ReadFile(templateFile)
+func GenerateStruct(tableName string, columns []ColumnSchema, typeMappings map[string]TypeMapping) (string, error) {
+	tmplContent, err := GetGormModelTemplate()
 	if err != nil {
-		return "", fmt.Errorf("failed to read template file: %w", err)
+		return "", fmt.Errorf("failed to get gorm model template: %w", err)
 	}
+
 	tmpl, err := template.New("structTemplate").Parse(string(tmplContent))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse template: %w", err)

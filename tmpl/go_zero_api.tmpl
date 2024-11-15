@@ -1,0 +1,34 @@
+{{- range .Structs }}
+// {{ .StructName }} represents the structure of {{ .TableName }}.
+type {{ .StructName }} struct {
+{{- range .Fields }}
+	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"`
+{{- end }}
+}
+{{- end }}
+
+@server (
+	prefix: {{ .Prefix }}
+	group:  {{ .Group }}
+)
+service {{ .ServiceName }} {
+	@doc "创建新的{{ .ModelName }}"
+	@handler Create{{ .ModelName }}
+	post /{{ .ResourceName }} (Create{{ .ModelName }}Req) returns (BaseResp)
+
+	@doc "获取{{ .ModelName }}列表"
+	@handler Get{{ .ModelName }}List
+	get /{{ .ResourceName }}/list (Get{{ .ModelName }}ListReq) returns (Get{{ .ModelName }}ListResp)
+
+	@doc "通过ID获取{{ .ModelName }}"
+	@handler Get{{ .ModelName }}ById
+	get /{{ .ResourceName }}/:id (Get{{ .ModelName }}ByIdReq) returns ({{ .ModelName }}Resp)
+
+	@doc "更新{{ .ModelName }}信息"
+	@handler Update{{ .ModelName }}
+	put /{{ .ResourceName }}/:id (Update{{ .ModelName }}Req) returns (BaseResp)
+
+	@doc "删除{{ .ModelName }}"
+	@handler Delete{{ .ModelName }}
+	delete /{{ .ResourceName }}/:id (Delete{{ .ModelName }}Req) returns (BaseResp)
+}
