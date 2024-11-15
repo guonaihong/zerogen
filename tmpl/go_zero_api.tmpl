@@ -1,12 +1,59 @@
+{{- /* Data Model Structs */}}
 {{- range .Structs }}
+
 // {{ .StructName }} represents the structure of {{ .TableName }}.
 type {{ .StructName }} struct {
 {{- range .Fields }}
 	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"`
 {{- end }}
 }
+
+// Create{{ .StructName }}Req defines the request for creating a {{ .StructName }}.
+type Create{{ .StructName }}Req struct {
+{{- range .Fields }}
+	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"`
+{{- end }}
+}
+
+// Update{{ .StructName }}Req defines the request for updating a {{ .StructName }}.
+type Update{{ .StructName }}Req struct {
+	ID string `json:"id" validate:"required"` // Primary key for identification
+{{- range .Fields }}
+	{{- if ne .FieldName "ID" }}
+	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"`
+	{{- end }}
+{{- end }}
+}
+
+// Delete{{ .StructName }}Req defines the request for deleting a {{ .StructName }}.
+type Delete{{ .StructName }}Req struct {
+	ID string `json:"id" validate:"required"` // Primary key for deletion
+}
+
+// Get{{ .StructName }}ByIdReq defines the request for fetching a {{ .StructName }} by ID.
+type Get{{ .StructName }}ByIdReq struct {
+	ID string `json:"id" validate:"required"` // Primary key for fetching
+}
+
+// Get{{ .StructName }}ListReq defines the request for fetching a list of {{ .StructName }}.
+type Get{{ .StructName }}ListReq struct {
+	Page  int `json:"page" validate:"gte=1"`  // Pagination: page number
+	Limit int `json:"limit" validate:"gte=1"` // Pagination: limit per page
+}
+
+// Get{{ .StructName }}ListResp defines the response for fetching a list of {{ .StructName }}.
+type Get{{ .StructName }}ListResp struct {
+	Total int              `json:"total"` // Total number of records
+	List  []{{ .StructName }} `json:"list"`  // List of {{ .StructName }}
+}
+
+// {{ .StructName }}Resp defines the response for fetching a single {{ .StructName }}.
+type {{ .StructName }}Resp struct {
+	{{ .StructName }} // Embed the structure for detailed data
+}
 {{- end }}
 
+{{- /* Main API Definition */}}
 @server (
 	prefix: {{ .Prefix }}
 	group:  {{ .Group }}
