@@ -1,0 +1,10 @@
+type {{ .StructName }} struct {
+{{- range .Columns }}
+    {{ .FieldName }} {{ .FieldType }} ` + "`gorm:\"column:{{ .ColumnName }}\"`" + `{{ if .Nullable }} // Nullable{{ end }}
+{{- end }}
+}
+
+// TableName returns the name of the table corresponding to the {{ .StructName }} struct
+func ({{ .StructName }}) TableName() string {
+    return "{{ .TableName }}"
+}
