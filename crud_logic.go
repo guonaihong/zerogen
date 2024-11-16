@@ -8,7 +8,7 @@ import (
 )
 
 // GenerateCRUDLogic generates CRUD logic code for a given model
-func GenerateCRUDLogic(
+func (z *ZeroGen) GenerateCRUDLogic(
 	homeDir string,
 	tableName string,
 	columnSchema []ColumnSchema,
@@ -95,7 +95,7 @@ func GenerateCRUDLogic(
 
 	// Execute all templates
 	var buf bytes.Buffer
-
+	var all bytes.Buffer
 	logicName := strings.Title(tableName)
 	// Create
 	data.LogicName = "Create" + logicName
@@ -106,6 +106,11 @@ func GenerateCRUDLogic(
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute create template: %w", err)
 	}
+	all.Write(buf.Bytes())
+	if z.CrudLogicDir != "" {
+		WriteToFile(z.CrudLogicDir, "create_"+tableName+"_logic.go", buf.Bytes())
+	}
+	buf.Reset()
 
 	// Delete
 	data.LogicName = "Delete" + logicName
@@ -116,6 +121,11 @@ func GenerateCRUDLogic(
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute delete template: %w", err)
 	}
+	if z.CrudLogicDir != "" {
+		WriteToFile(z.CrudLogicDir, "delete_"+tableName+"_logic.go", buf.Bytes())
+	}
+	all.Write(buf.Bytes())
+	buf.Reset()
 
 	// GetById
 	data.LogicName = "Get" + logicName + "ById"
@@ -126,6 +136,11 @@ func GenerateCRUDLogic(
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute getbyid template: %w", err)
 	}
+	if z.CrudLogicDir != "" {
+		WriteToFile(z.CrudLogicDir, "get_"+tableName+"_by_id_logic.go", buf.Bytes())
+	}
+	all.Write(buf.Bytes())
+	buf.Reset()
 
 	// GetList
 	data.LogicName = "Get" + logicName + "List"
@@ -136,6 +151,11 @@ func GenerateCRUDLogic(
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute getlist template: %w", err)
 	}
+	if z.CrudLogicDir != "" {
+		WriteToFile(z.CrudLogicDir, "get_"+tableName+"_list_logic.go", buf.Bytes())
+	}
+	all.Write(buf.Bytes())
+	buf.Reset()
 
 	// Update
 	data.LogicName = "Update" + logicName
@@ -146,6 +166,11 @@ func GenerateCRUDLogic(
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute update template: %w", err)
 	}
+	if z.CrudLogicDir != "" {
+		WriteToFile(z.CrudLogicDir, "update_"+tableName+"_logic.go", buf.Bytes())
+	}
+	all.Write(buf.Bytes())
+	buf.Reset()
 
-	return buf.String(), nil
+	return all.String(), nil
 }

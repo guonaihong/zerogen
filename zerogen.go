@@ -114,7 +114,7 @@ func (z *ZeroGen) Run() error {
 		fmt.Println(res)
 	}
 
-	res, err = GenerateCRUDLogic(
+	res, err = z.GenerateCRUDLogic(
 		z.Home,
 		z.Table,
 		columns,
@@ -133,5 +133,6 @@ func (z *ZeroGen) Run() error {
 	if z.Debug {
 		fmt.Println(res)
 	}
+
 	return nil
 }
