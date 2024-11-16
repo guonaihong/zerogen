@@ -27,13 +27,18 @@ func ToCamelCase(s string) string {
 
 // GoType returns the Go type for a given database column type based on the framework type mapping,
 // using "default" mapping if no specific framework mapping exists.
-func GoType(columnType string, nullable bool, typeMappings map[string]TypeMapping) string {
+func GoType(columnType string, nullable bool, typeMappings map[string]TypeMapping, framework string) string {
 	frameworkMappings, exists := typeMappings[columnType]
 	if !exists {
 		return "string" // 默认字符串类型
 	}
 
 	goType := frameworkMappings.Default
+	if framework == "gorm" && frameworkMappings.Gorm != "" {
+		goType = frameworkMappings.Gorm
+	} else if framework == "gozero" && frameworkMappings.Gozero != "" {
+		goType = frameworkMappings.Gozero
+	}
 
 	if nullable && goType != "string" {
 		goType = "*" + goType // 如果字段可为空，使用指针类型
@@ -78,7 +83,7 @@ func GenerateStruct(tableName string, columns []ColumnSchema, typeMappings map[s
 			Nullable   bool
 		}{
 			FieldName:  ToCamelCase(col.ColumnName),
-			FieldType:  GoType(col.ColumnType, col.Nullable, typeMappings),
+			FieldType:  GoType(col.ColumnType, col.Nullable, typeMappings, "gorm"),
 			ColumnName: col.ColumnName,
 			Nullable:   col.Nullable,
 		})

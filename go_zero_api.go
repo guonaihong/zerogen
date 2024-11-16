@@ -65,7 +65,7 @@ func schemaToStruct(tableName string, schema []ColumnSchema, typeMappings map[st
 	fields := []Field{}
 
 	for _, col := range schema {
-		goType := GoType(col.ColumnType, col.Nullable, typeMappings)
+		goType := GoType(col.ColumnType, col.Nullable, typeMappings, "gozero")
 		// if !ok {
 		// 	goType = "interface{}" // 默认类型
 		// }
