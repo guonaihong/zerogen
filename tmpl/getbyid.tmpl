@@ -1,0 +1,47 @@
+package {{ .PackageName }}
+
+import (
+	"context"
+	"errors"
+
+	"{{ .ServiceImport }}"
+	"{{ .ModelImport }}"
+	"{{ .TypeImport }}"
+
+	"github.com/zeromicro/go-zero/core/logx"
+)
+
+type {{ .LogicName }}Logic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+}
+
+// {{ .LogicDescription }}
+func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *{{ .LogicName }}Logic {
+	return &{{ .LogicName }}Logic{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
+	}
+}
+
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
+	// 1. 验证请求参数，确保 ID 存在
+	if req.{{ .IdFieldName }} == "" {
+		return &{{ .ResponseType }}{}, errors.New("{{ .IdFieldName }} is nil")
+	}
+
+	// 2. 从数据库查询记录
+	var {{ .ModelInstanceName }} {{ .ModelStruct }}
+	if err := l.svcCtx.DB.Where("{{ .IdColumn }} = ?", req.{{ .IdFieldName }}).First(&{{ .ModelInstanceName }}).Error; err != nil {
+		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+		return &{{ .ResponseType }}{}, err
+	}
+
+	// 3. 转换为响应类型
+	resp = &{{ .ResponseType }}{}
+	CopyModels{{ .ModelStruct }}ToTypes{{ .ModelStruct }}(&{{ .ModelInstanceName }}, &resp.{{ .ModelStruct }})
+
+	return resp, nil
+}

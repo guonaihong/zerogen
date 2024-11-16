@@ -1,0 +1,46 @@
+
+package {{ .PackageName }}
+
+import (
+	"context"
+
+	"{{ .ServiceImport }}"
+	"{{ .ModelImport }}"
+	"{{ .TypeImport }}"
+
+	"github.com/zeromicro/go-zero/core/logx"
+)
+
+type {{ .LogicName }}Logic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+}
+
+// {{ .LogicDescription }}
+func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *{{ .LogicName }}Logic {
+	return &{{ .LogicName }}Logic{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
+	}
+}
+
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
+	// 1. 初始化响应
+	resp = &{{ .ResponseType }}{}
+
+	// 2. 更新数据
+	if err := l.svcCtx.DB.Model(&{{ .ModelStruct }}{}).Where("id = ?", req.Id).Updates(req).Error; err != nil {
+		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+		return nil, err
+	}
+
+	// 3. 查询更新后的数据
+	if err := l.svcCtx.DB.Where("id = ?", req.Id).First(resp).Error; err != nil {
+		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+		return nil, err
+	}
+
+	return resp, nil
+}

@@ -1,3 +1,13 @@
+package {{ .PackageName }}
+{{- if .Imports }}
+import (
+{{- range .Imports }}
+    "{{ . }}"
+{{- end }}
+)
+{{- end }}
+
+
 type {{ .StructName }} struct {
 {{- range .Columns }}
     {{ .FieldName }} {{ .FieldType }} `gorm:"column:{{ .ColumnName }}"`{{ if .Nullable }} // Nullable{{ end }}

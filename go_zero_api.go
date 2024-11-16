@@ -2,6 +2,7 @@ package zerogen
 
 import (
 	"bytes"
+	"strings"
 	"text/template"
 )
 
@@ -26,7 +27,9 @@ type ApiService struct {
 	Structs      []StructInfo // 数据表对应的结构体
 }
 
-func GenerateApiService(tableName string,
+func GenerateApiService(
+	homeDir string,
+	tableName string,
 	schema []ColumnSchema,
 	typeMappings map[string]TypeMapping,
 	prefix string,
@@ -42,7 +45,7 @@ func GenerateApiService(tableName string,
 		ResourceName: resourceName,
 		Structs:      []StructInfo{structInfo},
 	}
-	tmpl, err := GetGoZeroApiTemplate()
+	tmpl, err := GetGoZeroApiTemplate(homeDir)
 	if err != nil {
 		return "", err
 	}
@@ -60,19 +63,32 @@ func GenerateApiService(tableName string,
 	return result.String(), nil
 }
 
+// ToLowerCamelCase converts snake_case to lowerCamelCase
+func ToLowerCamelCase(s string) string {
+	parts := strings.Split(s, "_")
+	for i := range parts {
+		if i > 0 {
+			parts[i] = strings.Title(parts[i])
+		} else {
+			parts[i] = strings.ToLower(parts[i])
+		}
+	}
+	return strings.Join(parts, "")
+}
+
 func schemaToStruct(tableName string, schema []ColumnSchema, typeMappings map[string]TypeMapping) StructInfo {
 	structName := ToCamelCase(tableName)
 	fields := []Field{}
 
 	for _, col := range schema {
-		goType := GoType(col.ColumnType, col.Nullable, typeMappings, "gozero")
+		goType, _ := GoType(col.ColumnType, col.Nullable, typeMappings, "gozero")
 		// if !ok {
 		// 	goType = "interface{}" // 默认类型
 		// }
 		field := Field{
 			FieldName: ToCamelCase(col.ColumnName),
 			FieldType: goType,
-			JSONName:  col.ColumnName,
+			JSONName:  ToLowerCamelCase(col.ColumnName),
 		}
 		fields = append(fields, field)
 	}

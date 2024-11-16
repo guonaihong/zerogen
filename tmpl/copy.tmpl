@@ -1,0 +1,44 @@
+{{- range .Structs }}
+
+// CopyCreate{{ .StructName }}ReqTo{{ .StructName }} copies fields from Create{{ .StructName }}Req to {{ .StructName }}.
+func CopyCreate{{ .StructName }}ReqTo{{ .StructName }}(src *Create{{ .StructName }}Req, dest *{{ .StructName }}) {
+	{{- range .Fields }}
+	{{- if and (eq .FieldType "timestamp") (eq .ReqFieldType "string") }}
+	// Convert string to timestamp (time.Time) for {{ .FieldName }}
+	if src.{{ .FieldName }} != "" {
+		dest.{{ .FieldName }}, _ = time.Parse(time.RFC3339, src.{{ .FieldName }})
+	}
+	{{- else }}
+	dest.{{ .FieldName }} = src.{{ .FieldName }}
+	{{- end }}
+	{{- end }}
+}
+
+// CopyUpdate{{ .StructName }}ReqTo{{ .StructName }} copies fields from Update{{ .StructName }}Req to {{ .StructName }}.
+func CopyUpdate{{ .StructName }}ReqTo{{ .StructName }}(src *Update{{ .StructName }}Req, dest *{{ .StructName }}) {
+	{{- range .Fields }}
+	{{- if and (eq .FieldType "timestamp") (eq .ReqFieldType "string") }}
+	// Convert string to timestamp (time.Time) for {{ .FieldName }}
+	if src.{{ .FieldName }} != "" {
+		dest.{{ .FieldName }}, _ = time.Parse(time.RFC3339, src.{{ .FieldName }})
+	}
+	{{- else }}
+	dest.{{ .FieldName }} = src.{{ .FieldName }}
+	{{- end }}
+	{{- end }}
+}
+
+// CopyModels{{ .StructName }}ToTypes{{ .StructName }} copies fields from models.{{ .StructName }} to types.{{ .StructName }}.
+func CopyModels{{ .StructName }}ToTypes{{ .StructName }}(src *models.{{ .StructName }}, dest *types.{{ .StructName }}) {
+	{{- range .Fields }}
+	{{- if (eq .FieldType "timestamp") }}
+	// Convert timestamp (time.Time) to string for {{ .FieldName }}
+	if !src.{{ .FieldName }}.IsZero() {
+		dest.{{ .FieldName }} = src.{{ .FieldName }}.Format(time.RFC3339)
+	}
+	{{- else }}
+	dest.{{ .FieldName }} = src.{{ .FieldName }}
+	{{- end }}
+	{{- end }}
+}
+{{- end }}

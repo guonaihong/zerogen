@@ -2,6 +2,8 @@ uuid:
   default: "string"
   gorm: "uuid.UUID"
   gozero: "string"
+  gormImportPath: "github.com/google/uuid"
+
 int:
   default: "int"
 smallint:
@@ -21,7 +23,9 @@ double:
 timestamp:
   default: "time.Time"
   gozero: string
+  gormImportPath: "time"
 "timestamp with time zone":
   default: "time.Time"
+  gormImportPath: "time"
 date:
   default: "time.Time"

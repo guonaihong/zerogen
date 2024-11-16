@@ -3,18 +3,10 @@ package zerogen
 import (
 	"bytes"
 	"fmt"
+	"go/format"
 	"strings"
 	"text/template"
 )
-
-// ColumnSchema represents the schema of a database column
-type ColumnSchema struct {
-	ColumnName   string  // Column name, e.g., "id", "created_at"
-	ColumnType   string  // Column type, e.g., "uuid", "text"
-	Nullable     bool    // Column nullable, e.g., true, false
-	Length       int64   // Column length, e.g., 128, 9223372036854775807
-	DefaultValue *string // Default value of the column, e.g., "now()"
-}
 
 // ToCamelCase converts snake_case to CamelCase
 func ToCamelCase(s string) string {
@@ -27,10 +19,14 @@ func ToCamelCase(s string) string {
 
 // GoType returns the Go type for a given database column type based on the framework type mapping,
 // using "default" mapping if no specific framework mapping exists.
-func GoType(columnType string, nullable bool, typeMappings map[string]TypeMapping, framework string) string {
+func GoType(columnType string,
+	nullable bool,
+	typeMappings map[string]TypeMapping,
+	framework string,
+) (string, string) {
 	frameworkMappings, exists := typeMappings[columnType]
 	if !exists {
-		return "string" // 默认字符串类型
+		return "string", "" // 默认字符串类型
 	}
 
 	goType := frameworkMappings.Default
@@ -44,12 +40,22 @@ func GoType(columnType string, nullable bool, typeMappings map[string]TypeMappin
 		goType = "*" + goType // 如果字段可为空，使用指针类型
 	}
 
-	return goType
+	imporPath := frameworkMappings.GormImportPath
+	if framework == "gozero" {
+		// TODO
+		imporPath = ""
+	}
+	return goType, imporPath
 }
 
 // GenerateStruct generates a struct based on the schema info using Go templates
-func GenerateStruct(tableName string, columns []ColumnSchema, typeMappings map[string]TypeMapping) (string, error) {
-	tmplContent, err := GetGormModelTemplate()
+func GenerateGormModel(
+	modelPkgName string,
+	homeDir string,
+	tableName string,
+	columns []ColumnSchema,
+	typeMappings map[string]TypeMapping) (string, error) {
+	tmplContent, err := GetGormModelTemplate(homeDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to get gorm model template: %w", err)
 	}
@@ -61,21 +67,25 @@ func GenerateStruct(tableName string, columns []ColumnSchema, typeMappings map[s
 
 	// Prepare data for the template
 	data := struct {
-		StructName string
-		TableName  string
-		Columns    []struct {
+		StructName  string
+		TableName   string
+		PackageName string
+		Imports     []string
+		Columns     []struct {
 			FieldName  string
 			FieldType  string
 			ColumnName string
 			Nullable   bool
 		}
 	}{
-		StructName: ToCamelCase(tableName),
-		TableName:  tableName,
+		StructName:  ToCamelCase(tableName),
+		TableName:   tableName,
+		PackageName: modelPkgName,
 	}
 
 	// Fill column data with converted names and types
 	for _, col := range columns {
+		goType, goImportPath := GoType(col.ColumnType, col.Nullable, typeMappings, "gorm")
 		data.Columns = append(data.Columns, struct {
 			FieldName  string
 			FieldType  string
@@ -83,10 +93,13 @@ func GenerateStruct(tableName string, columns []ColumnSchema, typeMappings map[s
 			Nullable   bool
 		}{
 			FieldName:  ToCamelCase(col.ColumnName),
-			FieldType:  GoType(col.ColumnType, col.Nullable, typeMappings, "gorm"),
+			FieldType:  goType,
 			ColumnName: col.ColumnName,
 			Nullable:   col.Nullable,
 		})
+		if goImportPath != "" {
+			data.Imports = append(data.Imports, goImportPath)
+		}
 	}
 
 	// Execute the template
@@ -94,6 +107,10 @@ func GenerateStruct(tableName string, columns []ColumnSchema, typeMappings map[s
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute template: %w", err)
 	}
+	formattedOutput, err := format.Source(buf.Bytes())
+	if err != nil {
+		return "", fmt.Errorf("failed to format generated code: %w", err)
+	}
+	return string(formattedOutput), nil
 
-	return buf.String(), nil
 }

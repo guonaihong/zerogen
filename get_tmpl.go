@@ -10,9 +10,10 @@ import (
 )
 
 type TypeMapping struct {
-	Default string `yaml:"default"`
-	Gorm    string `yaml:"gorm"`
-	Gozero  string `yaml:"gozero"`
+	Default        string `yaml:"default"`
+	Gorm           string `yaml:"gorm"`
+	Gozero         string `yaml:"gozero"`
+	GormImportPath string `yaml:"gormImportPath"`
 }
 
 //go:embed cnf/type_mapping.yaml
@@ -24,11 +25,31 @@ var defaultTemplate []byte
 //go:embed tmpl/go_zero_api.tmpl
 var goZeroApiTemplate []byte
 
-func getFileContent(fileName string, defaultContent []byte) ([]byte, error) {
+//go:embed tmpl/copy.tmpl
+var copyTemplate []byte
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user home directory: %w", err)
+//go:embed tmpl/create.tmpl
+var createTemplate []byte
+
+//go:embed tmpl/delete.tmpl
+var deleteTemplate []byte
+
+//go:embed tmpl/getbyid.tmpl
+var getByIdTemplate []byte
+
+//go:embed tmpl/getlist.tmpl
+var getListTemplate []byte
+
+//go:embed tmpl/update.tmpl
+var updateTemplate []byte
+
+func getFileContent(fileName string, defaultContent []byte, homeDir string) ([]byte, error) {
+	var err error
+	if homeDir == "" {
+		homeDir, err = os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get user home directory: %w", err)
+		}
 	}
 
 	var fileData []byte
@@ -53,8 +74,8 @@ useDefault:
 	return fileData, nil
 }
 
-func GetTypeMappings() (map[string]TypeMapping, error) {
-	typeMappingData, err := getFileContent("type_mapping.yaml", typeMappingYAML)
+func GetTypeMappings(homeDir string) (map[string]TypeMapping, error) {
+	typeMappingData, err := getFileContent("type_mapping.yaml", typeMappingYAML, homeDir)
 	if err != nil {
 		return nil, err
 	}
@@ -66,10 +87,34 @@ func GetTypeMappings() (map[string]TypeMapping, error) {
 	return typeMapping, nil
 }
 
-func GetGormModelTemplate() ([]byte, error) {
-	return getFileContent("gorm_model.tmpl", defaultTemplate)
+func GetGormModelTemplate(homeDir string) ([]byte, error) {
+	return getFileContent("gorm_model.tmpl", defaultTemplate, homeDir)
 }
 
-func GetGoZeroApiTemplate() ([]byte, error) {
-	return getFileContent("go_zero_api.tmpl", goZeroApiTemplate)
+func GetGoZeroApiTemplate(homeDir string) ([]byte, error) {
+	return getFileContent("go_zero_api.tmpl", goZeroApiTemplate, homeDir)
+}
+
+func GetCopyTemplate(homeDir string) ([]byte, error) {
+	return getFileContent("copy.tmpl", copyTemplate, homeDir)
+}
+
+func GetCreateTemplate(homeDir string) ([]byte, error) {
+	return getFileContent("create.tmpl", createTemplate, homeDir)
+}
+
+func GetDeleteTemplate(homeDir string) ([]byte, error) {
+	return getFileContent("delete.tmpl", deleteTemplate, homeDir)
+}
+
+func GetGetByIdTemplate(homeDir string) ([]byte, error) {
+	return getFileContent("getbyid.tmpl", getByIdTemplate, homeDir)
+}
+
+func GetGetListTemplate(homeDir string) ([]byte, error) {
+	return getFileContent("getlist.tmpl", getListTemplate, homeDir)
+}
+
+func GetUpdateTemplate(homeDir string) ([]byte, error) {
+	return getFileContent("update.tmpl", updateTemplate, homeDir)
 }

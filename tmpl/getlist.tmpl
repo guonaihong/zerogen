@@ -1,0 +1,60 @@
+package {{ .PackageName }}
+
+import (
+	"context"
+
+	"{{ .ServiceImport }}"
+	"{{ .ModelImport }}"
+	"{{ .TypeImport }}"
+
+	"github.com/zeromicro/go-zero/core/logx"
+)
+
+type {{ .LogicName }}Logic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+}
+
+// {{ .LogicDescription }}
+func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *{{ .LogicName }}Logic {
+	return &{{ .LogicName }}Logic{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
+	}
+}
+
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
+	// 1. 初始化响应
+	resp = &{{ .ResponseType }}{
+		List: make([]{{ .ModelStruct }}, 0),
+	}
+
+	// 2. 计算分页参数
+	offset := (req.Page - 1) * req.Limit
+
+	// 3. 查询总记录数
+	var total int64
+	if err := l.svcCtx.DB.Model(&{{ .ModelStruct }}{}).Count(&total).Error; err != nil {
+		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+		return nil, err
+	}
+	resp.Total = int(total)
+
+	// 4. 查询分页数据
+	var modelList []{{ .ModelStruct }}
+	if err := l.svcCtx.DB.Offset(offset).Limit(req.Limit).Find(&modelList).Error; err != nil {
+		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+		return nil, err
+	}
+
+	// 5. 转换为响应类型
+	for _, model := range modelList {
+		var item {{ .ModelStruct }}
+		CopyModels{{ .ModelStruct }}ToTypes{{ .ModelStruct }}(&model, &item)
+		resp.List = append(resp.List, item)
+	}
+
+	return resp, nil
+}

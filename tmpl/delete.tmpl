@@ -1,0 +1,41 @@
+package {{ .PackageName }}
+
+import (
+	"context"
+	"errors"
+
+	"{{ .ServiceImport }}"
+	"{{ .ModelImport }}"
+	"{{ .TypeImport }}"
+
+	"github.com/zeromicro/go-zero/core/logx"
+)
+
+type {{ .LogicName }}Logic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+}
+
+// {{ .LogicDescription }}
+func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *{{ .LogicName }}Logic {
+	return &{{ .LogicName }}Logic{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
+	}
+}
+
+// {{ .LogicName }} 执行删除 {{ .LogicDescription}} 的逻辑
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
+
+	
+	// 2. 使用 GORM 执行删除操作
+	if err := l.svcCtx.DB.Where("{{ .IdFieldName }} = ?", req.{{ .IdFieldName }}).Delete(&{{ .ModelStruct }}{}).Error; err != nil {
+		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+		return &{{ .ResponseType }}{}, err
+	}
+
+	// 3. 返回成功响应
+	return &{{ .ResponseType }}{}, nil
+}

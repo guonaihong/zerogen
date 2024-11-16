@@ -48,8 +48,8 @@ type Get{{ .StructName }}ByIdReq struct {
 
 // Get{{ .StructName }}ListReq defines the request for fetching a list of {{ .StructName }}.
 type Get{{ .StructName }}ListReq struct {
-	Page  int `json:"page" validate:"gte=1"`  // Pagination: page number
-	Limit int `json:"limit" validate:"gte=1"` // Pagination: limit per page
+	Page  int `form:"page" validate:"gte=1"`  // Pagination: page number
+	Limit int `form:"limit" validate:"gte=1"` // Pagination: limit per page
 }
 
 // Get{{ .StructName }}ListResp defines the response for fetching a list of {{ .StructName }}.

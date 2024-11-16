@@ -3,6 +3,8 @@ package zerogen
 import (
 	_ "embed"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"gorm.io/driver/mysql"
@@ -13,22 +15,35 @@ import (
 )
 
 type ZeroGen struct {
-	Dsn            string `clop:"long" usage:"database dsn"`
-	ModelOutPutDir string `clop:"long" usage:"model output directory" default:"."`
-	Table          string `clop:"long" usage:"table name"`
+	Dsn          string `clop:"long" usage:"database dsn"`
+	ModelDir     string `clop:"long" usage:"gorm model output directory"`
+	GoZeroApiDir string `clop:"long" usage:"go zero api output directory"`
+	CopyDir      string `clop:"long" usage:"copy functions output directory"`
+	CrudLogicDir string `clop:"long" usage:"crud logic output directory"`
+	Table        string `clop:"long" usage:"table name"`
+	Home         string `clop:"long" usage:"template home directory"`
+	Debug        bool   `clop:"long" usage:"debug mode"`
+	ModelPkgName string `clop:"long" usage:"gorm model package name" default:"models"`
 }
 
-func GenerateGormModel(db *gorm.DB,
-	tableName string,
-	columnSchemas []ColumnSchema,
-	typeMappings map[string]TypeMapping) (string, error) {
-	// Generate the struct
-	structCode, err := GenerateStruct(tableName, columnSchemas, typeMappings)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate struct: %w", err)
+func WriteToFile(dir string, fileName string, data []byte) error {
+	// Check if the directory exists
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		// Create the directory if it does not exist
+		err = os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			return fmt.Errorf("failed to create directory: %w", err)
+		}
 	}
 
-	return structCode, nil
+	// Write the data to the file
+	filePath := filepath.Join(dir, fileName)
+	err := os.WriteFile(filePath, data, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write to file: %w", err)
+	}
+
+	return nil
 }
 
 func (z *ZeroGen) Run() error {
@@ -57,22 +72,66 @@ func (z *ZeroGen) Run() error {
 	}
 
 	// Get type mappings
-	typeMappings, err := GetTypeMappings()
+	typeMappings, err := GetTypeMappings(z.Home)
 	if err != nil {
 		return fmt.Errorf("failed to get type mappings: %w", err)
 	}
 
-	res, err := GenerateGormModel(db, z.Table, columns, typeMappings)
+	res, err := GenerateGormModel(z.ModelPkgName, z.Home, z.Table, columns, typeMappings)
 	if err != nil {
 		return fmt.Errorf("failed to generate gorm model: %w", err)
 	}
 
-	fmt.Println(res)
+	if z.Debug {
+		fmt.Println(res)
+	}
+	if z.ModelDir != "" {
+		err = WriteToFile(z.ModelDir, "d_"+z.Table+".go", []byte(res))
+		if err != nil {
+			return fmt.Errorf("failed to write gorm model file: %w", err)
+		}
+	}
 
-	res, err = GenerateApiService(z.Table, columns, typeMappings, "api", "v1", z.Table, z.Table)
+	res, err = GenerateApiService(z.Home, z.Table, columns, typeMappings, "api", "v1", z.Table, z.Table)
 	if err != nil {
 		return fmt.Errorf("failed to generate go zero api: %w", err)
 	}
-	fmt.Println(res)
+	if z.Debug {
+		fmt.Println(res)
+	}
+	if z.GoZeroApiDir != "" {
+		err = WriteToFile(z.GoZeroApiDir, "a_"+z.Table+".api", []byte(res))
+		if err != nil {
+			return fmt.Errorf("failed to write go zero api file: %w", err)
+		}
+	}
+
+	res, err = GenerateCopyFuncs(z.Home, z.Table, columns, typeMappings)
+	if err != nil {
+		return fmt.Errorf("failed to generate copy funcs: %w", err)
+	}
+	if z.Debug {
+		fmt.Println(res)
+	}
+
+	res, err = GenerateCRUDLogic(
+		z.Home,
+		z.Table,
+		columns,
+		"api",
+		"v1",
+		z.Table,
+		z.Table,
+		"Create"+z.Table,
+		"Create"+z.Table+"Request",
+		"Create"+z.Table+"Response",
+		z.Table, z.Table,
+		"Failed to create "+z.Table)
+	if err != nil {
+		return fmt.Errorf("failed to generate crud logic: %w", err)
+	}
+	if z.Debug {
+		fmt.Println(res)
+	}
 	return nil
 }
