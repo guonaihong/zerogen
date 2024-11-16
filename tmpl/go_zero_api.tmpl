@@ -11,15 +11,18 @@ type {{ .StructName }} struct {
 // Create{{ .StructName }}Req defines the request for creating a {{ .StructName }}.
 type Create{{ .StructName }}Req struct {
 {{- range .Fields }}
+	{{- if not (or (eq .FieldName "ID") (eq .FieldName "Id")) }}
 	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"`
+	{{- end }}
 {{- end }}
 }
 
 // Update{{ .StructName }}Req defines the request for updating a {{ .StructName }}.
 type Update{{ .StructName }}Req struct {
-	ID string `json:"id" validate:"required"` // Primary key for identification
 {{- range .Fields }}
-	{{- if ne .FieldName "ID" }}
+	{{- if or (eq .FieldName "ID") (eq .FieldName "Id") }}
+	{{ .FieldName }} {{ .FieldType }} `path:"id"` // Primary key for identification
+	{{- else }}
 	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"`
 	{{- end }}
 {{- end }}
@@ -27,12 +30,20 @@ type Update{{ .StructName }}Req struct {
 
 // Delete{{ .StructName }}Req defines the request for deleting a {{ .StructName }}.
 type Delete{{ .StructName }}Req struct {
-	ID string `json:"id" validate:"required"` // Primary key for deletion
+{{- range .Fields }}
+	{{- if or (eq .FieldName "ID") (eq .FieldName "Id") }}
+	{{ .FieldName }} {{ .FieldType }} `path:"id"` // Primary key for deletion
+	{{- end }}
+{{- end }}
 }
 
 // Get{{ .StructName }}ByIdReq defines the request for fetching a {{ .StructName }} by ID.
 type Get{{ .StructName }}ByIdReq struct {
-	ID string `json:"id" validate:"required"` // Primary key for fetching
+{{- range .Fields }}
+	{{- if or (eq .FieldName "ID") (eq .FieldName "Id") }}
+	{{ .FieldName }} {{ .FieldType }} `path:"id"` // Primary key for fetching
+	{{- end }}
+{{- end }}
 }
 
 // Get{{ .StructName }}ListReq defines the request for fetching a list of {{ .StructName }}.
