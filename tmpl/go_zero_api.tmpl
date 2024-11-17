@@ -2,34 +2,36 @@
 {{- range .Structs }}
 
 // {{ .StructName }} represents the structure of {{ .TableName }}.
-type {{ .StructName }} struct {
+type {{ .StructName }} {
 {{- range .Fields }}
+	{{- if not (eq .FieldName "DeletedAt") }}
 	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"`
+	{{- end }}
 {{- end }}
 }
 
 // Create{{ .StructName }}Req defines the request for creating a {{ .StructName }}.
-type Create{{ .StructName }}Req struct {
+type Create{{ .StructName }}Req {
 {{- range .Fields }}
-	{{- if not (or (eq .FieldName "ID") (eq .FieldName "Id")) }}
+	{{- if not (or (eq .FieldName "ID") (eq .FieldName "Id") (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
 	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"`
 	{{- end }}
 {{- end }}
 }
 
 // Update{{ .StructName }}Req defines the request for updating a {{ .StructName }}.
-type Update{{ .StructName }}Req struct {
+type Update{{ .StructName }}Req {
 {{- range .Fields }}
 	{{- if or (eq .FieldName "ID") (eq .FieldName "Id") }}
 	{{ .FieldName }} {{ .FieldType }} `path:"id"` // Primary key for identification
-	{{- else }}
-	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"`
+	{{- else if not (or (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
+	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }},optional" tomap:"{{.SnakeCaseName}},omitempty" `
 	{{- end }}
 {{- end }}
 }
 
 // Delete{{ .StructName }}Req defines the request for deleting a {{ .StructName }}.
-type Delete{{ .StructName }}Req struct {
+type Delete{{ .StructName }}Req {
 {{- range .Fields }}
 	{{- if or (eq .FieldName "ID") (eq .FieldName "Id") }}
 	{{ .FieldName }} {{ .FieldType }} `path:"id"` // Primary key for deletion
@@ -38,7 +40,7 @@ type Delete{{ .StructName }}Req struct {
 }
 
 // Get{{ .StructName }}ByIdReq defines the request for fetching a {{ .StructName }} by ID.
-type Get{{ .StructName }}ByIdReq struct {
+type Get{{ .StructName }}ByIdReq {
 {{- range .Fields }}
 	{{- if or (eq .FieldName "ID") (eq .FieldName "Id") }}
 	{{ .FieldName }} {{ .FieldType }} `path:"id"` // Primary key for fetching
@@ -47,19 +49,19 @@ type Get{{ .StructName }}ByIdReq struct {
 }
 
 // Get{{ .StructName }}ListReq defines the request for fetching a list of {{ .StructName }}.
-type Get{{ .StructName }}ListReq struct {
-	Page  int `form:"page" validate:"gte=1"`  // Pagination: page number
-	Limit int `form:"limit" validate:"gte=1"` // Pagination: limit per page
+type Get{{ .StructName }}ListReq {
+	PageNum  int `form:"pageNum,optional"`  // Pagination: page number
+	PageSize int `form:"pageSize,optional"` // Pagination: limit per page
 }
 
 // Get{{ .StructName }}ListResp defines the response for fetching a list of {{ .StructName }}.
-type Get{{ .StructName }}ListResp struct {
+type Get{{ .StructName }}ListResp {
 	Total int              `json:"total"` // Total number of records
 	List  []{{ .StructName }} `json:"list"`  // List of {{ .StructName }}
 }
 
 // {{ .StructName }}Resp defines the response for fetching a single {{ .StructName }}.
-type {{ .StructName }}Resp struct {
+type {{ .StructName }}Resp {
 	{{ .StructName }} // Embed the structure for detailed data
 }
 {{- end }}

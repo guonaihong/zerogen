@@ -26,6 +26,15 @@ timestamp:
   gormImportPath: "time"
 "timestamp with time zone":
   default: "time.Time"
+  gozero: string
   gormImportPath: "time"
 date:
   default: "time.Time"
+"text[]":
+  default: "pq.StringArray"
+  gormImportPath: "github.com/lib/pq"
+  gozero: "[]string"
+"uuid[]":
+  default: "pq.StringArray"
+  gormImportPath: "github.com/lib/pq"
+  gozero: "[]string"

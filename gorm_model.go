@@ -23,6 +23,7 @@ func GoType(columnType string,
 	nullable bool,
 	typeMappings map[string]TypeMapping,
 	framework string,
+	usePtr bool,
 ) (string, string) {
 	frameworkMappings, exists := typeMappings[columnType]
 	if !exists {
@@ -36,8 +37,10 @@ func GoType(columnType string,
 		goType = frameworkMappings.Gozero
 	}
 
-	if nullable && goType != "string" {
-		goType = "*" + goType // 如果字段可为空，使用指针类型
+	if usePtr {
+		if nullable && goType != "string" {
+			goType = "*" + goType // 如果字段可为空，使用指针类型
+		}
 	}
 
 	imporPath := frameworkMappings.GormImportPath
@@ -85,7 +88,7 @@ func GenerateGormModel(
 
 	// Fill column data with converted names and types
 	for _, col := range columns {
-		goType, goImportPath := GoType(col.ColumnType, col.Nullable, typeMappings, "gorm")
+		goType, goImportPath := GoType(col.ColumnType, col.Nullable, typeMappings, "gorm", false)
 		data.Columns = append(data.Columns, struct {
 			FieldName  string
 			FieldType  string

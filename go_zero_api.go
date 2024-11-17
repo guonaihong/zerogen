@@ -2,14 +2,14 @@ package zerogen
 
 import (
 	"bytes"
-	"strings"
 	"text/template"
 )
 
 type Field struct {
-	FieldName string // Go 结构体字段名（驼峰）
-	FieldType string // Go 类型
-	JSONName  string // JSON 序列化字段名
+	FieldName     string // Go 结构体字段名（驼峰）
+	FieldType     string // Go 类型
+	JSONName      string // JSON 序列化字段名
+	SnakeCaseName string // Tag name in snake_case format
 }
 
 type StructInfo struct {
@@ -63,32 +63,20 @@ func GenerateApiService(
 	return result.String(), nil
 }
 
-// ToLowerCamelCase converts snake_case to lowerCamelCase
-func ToLowerCamelCase(s string) string {
-	parts := strings.Split(s, "_")
-	for i := range parts {
-		if i > 0 {
-			parts[i] = strings.Title(parts[i])
-		} else {
-			parts[i] = strings.ToLower(parts[i])
-		}
-	}
-	return strings.Join(parts, "")
-}
-
 func schemaToStruct(tableName string, schema []ColumnSchema, typeMappings map[string]TypeMapping) StructInfo {
 	structName := ToCamelCase(tableName)
 	fields := []Field{}
 
 	for _, col := range schema {
-		goType, _ := GoType(col.ColumnType, col.Nullable, typeMappings, "gozero")
+		goType, _ := GoType(col.ColumnType, col.Nullable, typeMappings, "gozero", false)
 		// if !ok {
 		// 	goType = "interface{}" // 默认类型
 		// }
 		field := Field{
-			FieldName: ToCamelCase(col.ColumnName),
-			FieldType: goType,
-			JSONName:  ToLowerCamelCase(col.ColumnName),
+			FieldName:     ToCamelCase(col.ColumnName),
+			FieldType:     goType,
+			JSONName:      ToLowerCamelCase(col.ColumnName),
+			SnakeCaseName: ToSnakeCase(col.ColumnName),
 		}
 		fields = append(fields, field)
 	}
