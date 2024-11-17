@@ -24,6 +24,9 @@ type ZeroGen struct {
 	Home         string `clop:"long" usage:"template home directory"`
 	Debug        bool   `clop:"long" usage:"debug mode"`
 	ModelPkgName string `clop:"long" usage:"gorm model package name" default:"models"`
+	ApiPrefix    string `clop:"long" usage:"go zero api file name prefix"`
+	ServiceName  string `clop:"long" usage:"go zero api service name"`
+	ApiGroup     string `clop:"long" usage:"go zero api group name"`
 }
 
 func WriteToFile(dir string, fileName string, data []byte) error {
@@ -92,7 +95,12 @@ func (z *ZeroGen) Run() error {
 		}
 	}
 
-	res, err = GenerateApiService(z.Home, z.Table, columns, typeMappings, "api", "v1", z.Table, z.Table)
+	serviceName := z.Table
+	if z.ServiceName != "" {
+		serviceName = z.ServiceName
+	}
+	groupName := z.ApiGroup
+	res, err = GenerateApiService(z.Home, z.Table, columns, typeMappings, "/api/v1", groupName, serviceName, z.Table)
 	if err != nil {
 		return fmt.Errorf("failed to generate go zero api: %w", err)
 	}
@@ -100,7 +108,11 @@ func (z *ZeroGen) Run() error {
 		fmt.Println(res)
 	}
 	if z.GoZeroApiDir != "" {
-		err = WriteToFile(z.GoZeroApiDir, "a_"+z.Table+".api", []byte(res))
+		apiPrefix := "a_"
+		if z.ApiPrefix != "" {
+			apiPrefix = z.ApiPrefix
+		}
+		err = WriteToFile(z.GoZeroApiDir, apiPrefix+z.Table+".api", []byte(res))
 		if err != nil {
 			return fmt.Errorf("failed to write go zero api file: %w", err)
 		}
