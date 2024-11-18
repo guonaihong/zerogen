@@ -8,7 +8,15 @@ func CopyCreate{{ .StructName }}ReqTo{{ .StructName }}(dest *models.{{ .StructNa
 	{{- if not (or (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "Id") (eq .FieldName "DeletedAt")) }}
 		{{- if .CopyGoZeroToGorm }}
 		// Custom conversion for {{ .FieldName }}
-		{{- if (hasPrefix .CopyGoZeroToGorm ".") }}
+		{{- if eq .CopyGoZeroToGorm "time.Parse" }}
+		// Use time.Parse with time.RFC3339
+		if src.{{ .FieldName }} != "" {
+			dest.{{ .FieldName }}, err = time.Parse(time.RFC3339, src.{{ .FieldName }})
+			if err != nil {
+				return err
+			}
+		}
+		{{- else if (hasPrefix .CopyGoZeroToGorm ".") }}
 		// Operate on src.{{ .FieldName }} and assign the transformed value to dest.{{ .FieldName }}
 		dest.{{ .FieldName }}, err = (src.{{ .FieldName }}{{ .CopyGoZeroToGorm }})
 		{{- else }}
@@ -37,7 +45,12 @@ func CopyModels{{ .StructName }}ToTypes{{ .StructName }}(dest *types.{{ .StructN
 	{{- if not (or (eq .FieldName "DeletedAt")) }}
 	{{- if .CopyGormToGoZero }}
 		// Custom conversion for {{ .FieldName }}
-		{{- if (hasPrefix .CopyGormToGoZero ".") }}
+		{{- if eq .CopyGormToGoZero "time.Format" }}
+		// Use time.Format with time.RFC3339
+		if !src.{{ .FieldName }}.IsZero() {
+			dest.{{ .FieldName }} = src.{{ .FieldName }}.Format(time.RFC3339)
+		}
+		{{- else if (hasPrefix .CopyGormToGoZero ".") }}
 		// Operate on src.{{ .FieldName }} and assign the transformed value to dest.{{ .FieldName }}
 		dest.{{ .FieldName }} = src.{{ .FieldName }}{{ .CopyGormToGoZero }}
 		{{- else }}
