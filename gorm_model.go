@@ -24,10 +24,10 @@ func GoType(columnType string,
 	typeMappings map[string]TypeMapping,
 	framework string,
 	usePtr bool,
-) (string, string) {
+) (string, string, TypeMapping) {
 	frameworkMappings, exists := typeMappings[columnType]
 	if !exists {
-		return "string", "" // 默认字符串类型
+		return "string", "", TypeMapping{} // 默认字符串类型
 	}
 
 	goType := frameworkMappings.Default
@@ -48,7 +48,7 @@ func GoType(columnType string,
 		// TODO
 		imporPath = ""
 	}
-	return goType, imporPath
+	return goType, imporPath, frameworkMappings
 }
 
 // GenerateStruct generates a struct based on the schema info using Go templates
@@ -88,7 +88,7 @@ func GenerateGormModel(
 
 	// Fill column data with converted names and types
 	for _, col := range columns {
-		goType, goImportPath := GoType(col.ColumnType, col.Nullable, typeMappings, "gorm", false)
+		goType, goImportPath, _ := GoType(col.ColumnType, col.Nullable, typeMappings, "gorm", false)
 		data.Columns = append(data.Columns, struct {
 			FieldName  string
 			FieldType  string

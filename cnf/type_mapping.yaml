@@ -3,6 +3,8 @@ uuid:
   gorm: "uuid.UUID"
   gozero: "string"
   gormImportPath: "github.com/google/uuid"
+  copyGoZeroToGorm: uuid.Parse
+  copyGormToGoZero: .String()
 
 int:
   default: "int"
@@ -24,10 +26,15 @@ timestamp:
   default: "time.Time"
   gozero: string
   gormImportPath: "time"
+  copyGoZeroToGorm: time.Parse
+  copyGormToGoZero: .Format(time.RFC3339)
+
 "timestamp with time zone":
   default: "time.Time"
   gozero: string
   gormImportPath: "time"
+  copyGoZeroToGorm: time.Parse
+  copyGormToGoZero: .Format(time.RFC3339)
 date:
   default: "time.Time"
 "text[]":

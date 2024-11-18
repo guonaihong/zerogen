@@ -10,10 +10,12 @@ import (
 )
 
 type TypeMapping struct {
-	Default        string `yaml:"default"`
-	Gorm           string `yaml:"gorm"`
-	Gozero         string `yaml:"gozero"`
-	GormImportPath string `yaml:"gormImportPath"`
+	Default          string `yaml:"default"`
+	Gorm             string `yaml:"gorm"`
+	Gozero           string `yaml:"gozero"`
+	GormImportPath   string `yaml:"gormImportPath"`
+	CopyGoZeroToGorm string `yaml:"copyGoZeroToGorm"`
+	CopyGormToGoZero string `yaml:"copyGormToGoZero"`
 }
 
 //go:embed cnf/type_mapping.yaml

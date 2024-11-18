@@ -6,10 +6,12 @@ import (
 )
 
 type Field struct {
-	FieldName     string // Go 结构体字段名（驼峰）
-	FieldType     string // Go 类型
-	JSONName      string // JSON 序列化字段名
-	SnakeCaseName string // Tag name in snake_case format
+	FieldName        string // Go 结构体字段名（驼峰）
+	FieldType        string // Go 类型
+	JSONName         string // JSON 序列化字段名
+	SnakeCaseName    string // Tag name in snake_case format
+	CopyGoZeroToGorm string `yaml:"copyGoZeroToGorm"`
+	CopyGormToGoZero string `yaml:"copyGormToGoZero"`
 }
 
 type StructInfo struct {
@@ -68,15 +70,17 @@ func schemaToStruct(tableName string, schema []ColumnSchema, typeMappings map[st
 	fields := []Field{}
 
 	for _, col := range schema {
-		goType, _ := GoType(col.ColumnType, col.Nullable, typeMappings, "gozero", false)
+		goType, _, typeMapping := GoType(col.ColumnType, col.Nullable, typeMappings, "gozero", false)
 		// if !ok {
 		// 	goType = "interface{}" // 默认类型
 		// }
 		field := Field{
-			FieldName:     ToCamelCase(col.ColumnName),
-			FieldType:     goType,
-			JSONName:      ToLowerCamelCase(col.ColumnName),
-			SnakeCaseName: ToSnakeCase(col.ColumnName),
+			FieldName:        ToCamelCase(col.ColumnName),
+			FieldType:        goType,
+			JSONName:         ToLowerCamelCase(col.ColumnName),
+			SnakeCaseName:    ToSnakeCase(col.ColumnName),
+			CopyGoZeroToGorm: typeMapping.CopyGoZeroToGorm,
+			CopyGormToGoZero: typeMapping.CopyGormToGoZero,
 		}
 		fields = append(fields, field)
 	}

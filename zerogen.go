@@ -118,12 +118,18 @@ func (z *ZeroGen) Run() error {
 		}
 	}
 
-	res, err = GenerateCopyFuncs(z.Home, z.Table, columns, typeMappings)
+	res, err = GenerateCopyFuncs(z.Home, z.CopyDir, z.Table, columns, typeMappings)
 	if err != nil {
 		return fmt.Errorf("failed to generate copy funcs: %w", err)
 	}
 	if z.Debug {
 		fmt.Println(res)
+	}
+	if z.CopyDir != "" {
+		err = WriteToFile(z.CopyDir, "c_"+z.Table+".go", []byte(res))
+		if err != nil {
+			return fmt.Errorf("failed to write copy funcs file: %w", err)
+		}
 	}
 
 	res, err = z.GenerateCRUDLogic(
