@@ -13,7 +13,12 @@ import (
 // CopyCreate{{ .StructName }}ReqTo{{ .StructName }} copies fields from Create{{ .StructName }}Req to {{ .StructName }}.
 func CopyCreate{{ .StructName }}ReqTo{{ .StructName }}(dest *models.{{ .StructName }}, src *types.Create{{ .StructName }}Req) (err error) {
 	{{- range .Fields }}
-	{{- if not (or (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "Id") (eq .FieldName "DeletedAt")) }}
+	{{- if eq .FieldName "Id" }}
+		{{- if eq .FieldType "uuid.UUID" }}
+		// Generate new UUID for Id
+		dest.Id = uuid.New()
+		{{- end }}
+	{{- else if not (or (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
 		{{- if .CopyGoZeroToGorm }}
 		// Custom conversion for {{ .FieldName }}
 		{{- if eq .CopyGoZeroToGorm "time.Parse" }}

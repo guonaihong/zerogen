@@ -23,7 +23,7 @@ type Create{{ .StructName }}Req {
 type Update{{ .StructName }}Req {
 {{- range .Fields }}
 	{{- if or (eq .FieldName "ID") (eq .FieldName "Id") }}
-	{{ .FieldName }} {{ .FieldType }} `path:"id"` // Primary key for identification
+	{{ .FieldName }} {{ .FieldType }} `path:"id" tomap:"{{.SnakeCaseName}},omitempty"` // Primary key for identification
 	{{- else if not (or (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
 	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }},optional" tomap:"{{.SnakeCaseName}},omitempty"`
 	{{- end }}

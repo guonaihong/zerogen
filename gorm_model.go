@@ -35,6 +35,10 @@ func GoType(columnType string,
 		goType = frameworkMappings.Gorm
 	} else if framework == "gozero" && frameworkMappings.Gozero != "" {
 		goType = frameworkMappings.Gozero
+	} else if frameworkMappings.Gorm != "" {
+		// 默认情况下，使用 Gorm 的类型
+		// 比如copy
+		goType = frameworkMappings.Gorm
 	}
 
 	if usePtr {
