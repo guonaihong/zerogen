@@ -1,5 +1,13 @@
 package {{ .PackageName }}
 
+{{- if .Imports }}
+import (
+{{- range .Imports }}
+    "{{ . }}"
+{{- end }}
+)
+{{- end }}
+
 {{- range .Structs }}
 
 // CopyCreate{{ .StructName }}ReqTo{{ .StructName }} copies fields from Create{{ .StructName }}Req to {{ .StructName }}.

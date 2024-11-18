@@ -25,7 +25,7 @@ type Update{{ .StructName }}Req {
 	{{- if or (eq .FieldName "ID") (eq .FieldName "Id") }}
 	{{ .FieldName }} {{ .FieldType }} `path:"id"` // Primary key for identification
 	{{- else if not (or (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
-	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }},optional" tomap:"{{.SnakeCaseName}},omitempty" `
+	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }},optional" tomap:"{{.SnakeCaseName}},omitempty"`
 	{{- end }}
 {{- end }}
 }
@@ -55,14 +55,18 @@ type Get{{ .StructName }}ListReq {
 }
 
 // Get{{ .StructName }}ListResp defines the response for fetching a list of {{ .StructName }}.
-type Get{{ .StructName }}ListResp {
+type Get{{ .StructName }}ListRespData {
 	Total int              `json:"total"` // Total number of records
 	List  []{{ .StructName }} `json:"list"`  // List of {{ .StructName }}
 }
 
+type Get{{ .StructName }}ListResp {
+	Data Get{{ .StructName }}ListRespData `json:"data"`
+}
+
 // {{ .StructName }}Resp defines the response for fetching a single {{ .StructName }}.
 type {{ .StructName }}Resp {
-	{{ .StructName }} // Embed the structure for detailed data
+	Data {{ .StructName }} `json:"data"`
 }
 {{- end }}
 

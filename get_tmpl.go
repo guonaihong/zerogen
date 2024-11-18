@@ -16,6 +16,7 @@ type TypeMapping struct {
 	GormImportPath   string `yaml:"gormImportPath"`
 	CopyGoZeroToGorm string `yaml:"copyGoZeroToGorm"`
 	CopyGormToGoZero string `yaml:"copyGormToGoZero"`
+	CopyPath         string `yaml:"copyPath"`
 }
 
 //go:embed cnf/type_mapping.yaml

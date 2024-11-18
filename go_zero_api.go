@@ -15,9 +15,10 @@ type Field struct {
 }
 
 type StructInfo struct {
-	StructName string  // Go 结构体名
-	TableName  string  // 数据库表名
-	Fields     []Field // 表字段信息
+	StructName   string   // Go 结构体名
+	TableName    string   // 数据库表名
+	Fields       []Field  // 表字段信息
+	GoImportPath []string //
 }
 
 type ApiService struct {
@@ -38,7 +39,7 @@ func GenerateApiService(
 	group string,
 	serviceName string,
 	resourceName string) (string, error) {
-	structInfo := schemaToStruct(tableName, schema, typeMappings)
+	structInfo := schemaToStruct(tableName, schema, typeMappings, "gozero")
 	apiService := ApiService{
 		Prefix:       prefix,
 		Group:        group,
@@ -65,12 +66,13 @@ func GenerateApiService(
 	return result.String(), nil
 }
 
-func schemaToStruct(tableName string, schema []ColumnSchema, typeMappings map[string]TypeMapping) StructInfo {
+func schemaToStruct(tableName string, schema []ColumnSchema, typeMappings map[string]TypeMapping, modelName string) StructInfo {
 	structName := ToCamelCase(tableName)
 	fields := []Field{}
 
+	goImportPaths := []string{}
 	for _, col := range schema {
-		goType, _, typeMapping := GoType(col.ColumnType, col.Nullable, typeMappings, "gozero", false)
+		goType, goImportPath, typeMapping := GoType(col.ColumnType, col.Nullable, typeMappings, modelName, false)
 		// if !ok {
 		// 	goType = "interface{}" // 默认类型
 		// }
@@ -83,11 +85,20 @@ func schemaToStruct(tableName string, schema []ColumnSchema, typeMappings map[st
 			CopyGormToGoZero: typeMapping.CopyGormToGoZero,
 		}
 		fields = append(fields, field)
+		if modelName == "copy" {
+			if typeMapping.CopyPath != "" {
+
+				goImportPaths = append(goImportPaths, typeMapping.CopyPath)
+			}
+		} else if goImportPath != "" {
+			goImportPaths = append(goImportPaths, goImportPath)
+		}
 	}
 
 	return StructInfo{
-		StructName: structName,
-		TableName:  tableName,
-		Fields:     fields,
+		StructName:   structName,
+		TableName:    tableName,
+		Fields:       fields,
+		GoImportPath: goImportPaths,
 	}
 }
