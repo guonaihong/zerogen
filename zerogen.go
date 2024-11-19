@@ -15,19 +15,19 @@ import (
 )
 
 type ZeroGen struct {
-	Dsn                  string `clop:"long" usage:"database dsn"`
-	ModelDir             string `clop:"long" usage:"gorm model output directory"`
-	GoZeroApiDir         string `clop:"long" usage:"go zero api output directory"`
-	CopyDir              string `clop:"long" usage:"copy functions output directory"`
-	CrudLogicDir         string `clop:"long" usage:"crud logic output directory"`
-	Table                string `clop:"long" usage:"table name"`
-	Home                 string `clop:"long" usage:"template home directory"`
-	Debug                bool   `clop:"long" usage:"debug mode"`
-	ModelPkgName         string `clop:"long" usage:"gorm model package name" default:"models"`
-	ApiPrefix            string `clop:"long" usage:"go zero api file name prefix"`
-	ServiceName          string `clop:"long" usage:"go zero api service name"`
-	ApiGroup             string `clop:"long" usage:"go zero api group name"`
-	CopyImportPathPrefix string `clop:"long" usage:"copy module import path prefix"`
+	Dsn              string `clop:"long" usage:"database dsn"`
+	ModelDir         string `clop:"long" usage:"gorm model output directory"`
+	GoZeroApiDir     string `clop:"long" usage:"go zero api output directory"`
+	CopyDir          string `clop:"long" usage:"copy functions output directory"`
+	CrudLogicDir     string `clop:"long" usage:"crud logic output directory"`
+	Table            string `clop:"long" usage:"table name"`
+	Home             string `clop:"long" usage:"template home directory"`
+	Debug            bool   `clop:"long" usage:"debug mode"`
+	ModelPkgName     string `clop:"long" usage:"gorm model package name" default:"models"`
+	ApiPrefix        string `clop:"long" usage:"go zero api file name prefix"`
+	ServiceName      string `clop:"long" usage:"go zero api service name"`
+	ApiGroup         string `clop:"long" usage:"go zero api group name"`
+	ImportPathPrefix string `clop:"long" usage:"copy module import path prefix"`
 }
 
 func WriteToFile(dir string, fileName string, data []byte) error {
@@ -140,9 +140,6 @@ func (z *ZeroGen) Run() error {
 		"api",
 		"v1",
 		z.Table,
-		z.Table,
-		"Create"+z.Table,
-		"Create"+z.Table+"Request",
 		"Create"+z.Table+"Response",
 		z.Table, z.Table,
 		"Failed to create "+z.Table)

@@ -17,7 +17,7 @@ type {{ .LogicName }}Logic struct {
 	svcCtx *svc.ServiceContext
 }
 
-// {{ .LogicDescription }}
+// {{ .LogicName }}
 func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *{{ .LogicName }}Logic {
 	return &{{ .LogicName }}Logic{
 		Logger: logx.WithContext(ctx),
@@ -26,7 +26,7 @@ func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *
 	}
 }
 
-// {{ .LogicName }} 执行删除 {{ .LogicDescription}} 的逻辑
+// {{ .LogicName }} 执行删除 {{ .LogicName}} 的逻辑
 func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
 
 	

@@ -78,3 +78,12 @@ func ToLowerCamelCase(s string) string {
 	}
 	return strings.Join(parts, "")
 }
+
+// ToCamelCase converts snake_case to CamelCase
+func ToCamelCase(s string) string {
+	parts := strings.Split(s, "_")
+	for i := range parts {
+		parts[i] = strings.Title(parts[i])
+	}
+	return strings.Join(parts, "")
+}

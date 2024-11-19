@@ -12,6 +12,7 @@ type Field struct {
 	SnakeCaseName    string // Tag name in snake_case format
 	CopyGoZeroToGorm string `yaml:"copyGoZeroToGorm"`
 	CopyGormToGoZero string `yaml:"copyGormToGoZero"`
+	Nullable         bool
 }
 
 type StructInfo struct {
@@ -83,6 +84,7 @@ func schemaToStruct(tableName string, schema []ColumnSchema, typeMappings map[st
 			SnakeCaseName:    ToSnakeCase(col.ColumnName),
 			CopyGoZeroToGorm: typeMapping.CopyGoZeroToGorm,
 			CopyGormToGoZero: typeMapping.CopyGormToGoZero,
+			Nullable:         col.Nullable,
 		}
 		fields = append(fields, field)
 		if modelName == "copy" {

@@ -3,6 +3,8 @@ package zerogen
 import (
 	"bytes"
 	"fmt"
+	"go/format"
+	"path/filepath"
 	"strings"
 	"text/template"
 )
@@ -16,9 +18,6 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	serviceImport,
 	modelImport,
 	typeImport,
-	logicDescription,
-	requestType,
-	responseType,
 	modelStruct,
 	modelInstanceName,
 	errorMessage string) (string, error) {
@@ -59,6 +58,9 @@ func (z *ZeroGen) GenerateCRUDLogic(
 			idFieldType = v.ColumnType
 		}
 	}
+	requestType := ToCamelCase(tableName) + "Req"
+	responseType := ToCamelCase(tableName) + "Resp"
+
 	// Prepare template data
 	data := struct {
 		PackageName       string
@@ -66,7 +68,6 @@ func (z *ZeroGen) GenerateCRUDLogic(
 		ModelImport       string
 		TypeImport        string
 		LogicName         string
-		LogicDescription  string
 		RequestType       string
 		ResponseType      string
 		ModelStruct       string
@@ -76,12 +77,12 @@ func (z *ZeroGen) GenerateCRUDLogic(
 		IdColumn          string
 		IdFieldName       string
 		IdFieldType       string
+		Imports           []string
 	}{
 		PackageName:       packageName,
 		ServiceImport:     serviceImport,
 		ModelImport:       modelImport,
 		TypeImport:        typeImport,
-		LogicDescription:  logicDescription,
 		RequestType:       requestType,
 		ResponseType:      responseType,
 		ModelStruct:       modelStruct,
@@ -93,10 +94,18 @@ func (z *ZeroGen) GenerateCRUDLogic(
 		IdFieldType:       idFieldType,
 	}
 
+	if z.ImportPathPrefix != "" {
+		data.Imports = append(data.Imports, z.ImportPathPrefix+"/types")
+		data.Imports = append(data.Imports, z.ImportPathPrefix+"/models")
+		data.Imports = append(data.Imports, z.ImportPathPrefix+"/svc")
+		if z.CopyDir != "" {
+			data.Imports = append(data.Imports, z.ImportPathPrefix+"/"+filepath.Base(z.CopyDir))
+		}
+	}
 	// Execute all templates
 	var buf bytes.Buffer
 	var all bytes.Buffer
-	logicName := strings.Title(tableName)
+	logicName := ToCamelCase(tableName)
 	// Create
 	data.LogicName = "Create" + logicName
 	tmpl, err := template.New("createTemplate").Parse(string(createTmpl))
@@ -106,7 +115,14 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute create template: %w", err)
 	}
-	all.Write(buf.Bytes())
+	// Format the generated code
+	formatted, err := format.Source(buf.Bytes())
+	if err != nil {
+		return "", fmt.Errorf("failed to format create template: %w", err)
+	}
+	buf.Write(formatted)
+	all.Write(formatted)
+
 	if z.CrudLogicDir != "" {
 		WriteToFile(z.CrudLogicDir, "create_"+tableName+"_logic.go", buf.Bytes())
 	}

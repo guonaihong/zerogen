@@ -27,9 +27,9 @@ func (z *ZeroGen) GenerateCopyFuncs(homeDir string, copyDir string, tableName st
 	if err != nil {
 		return "", fmt.Errorf("failed to get copy template: %w", err)
 	}
-	if z.CopyImportPathPrefix != "" {
-		data.Imports = append(data.Imports, z.CopyImportPathPrefix+"/types")
-		data.Imports = append(data.Imports, z.CopyImportPathPrefix+"/models")
+	if z.ImportPathPrefix != "" {
+		data.Imports = append(data.Imports, z.ImportPathPrefix+"/types")
+		data.Imports = append(data.Imports, z.ImportPathPrefix+"/models")
 	}
 
 	tpl, err := template.New("copyTemplate").Funcs(funcMap).Parse(string(tmpl))

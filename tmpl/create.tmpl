@@ -3,9 +3,11 @@ package {{ .PackageName }}
 import (
 	"context"
 
-	"{{ .ServiceImport }}"
-	"{{ .ModelImport }}"
-	"{{ .TypeImport }}"
+	{{- if .Imports }}
+	{{- range .Imports }}
+		"{{ . }}"
+	{{- end }}
+	{{- end }}
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -16,8 +18,8 @@ type {{ .LogicName }}Logic struct {
 	svcCtx *svc.ServiceContext
 }
 
-// {{ .LogicDescription }}
-func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *{{ .LogicName }} {
+// {{ .LogicName }}
+func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *{{ .LogicName }}Logic {
 	return &{{ .LogicName }}{
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
@@ -25,13 +27,13 @@ func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *
 	}
 }
 
-func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
 	// 1. 创建新的模型实例
 	var {{ .ModelInstanceName }} {{ .ModelStruct }}
 	CopyCreate{{ .ModelStruct }}ReqTo{{ .ModelStruct }}(req, &{{ .ModelInstanceName }})
 
 	// 2. 插入数据库
-	err = l.svcCtx.DB.Model(&{{ .ModelStruct }}{}).Create(&{{ .ModelInstanceName }}).Error
+	err = l.svcCtx.DB.Model({{ .ModelStruct }}{}.TableName()).Create(&{{ .ModelInstanceName }}).Error
 	if err != nil {
 		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
 		return &{{ .ResponseType }}{}, err

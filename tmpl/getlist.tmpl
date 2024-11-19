@@ -16,7 +16,7 @@ type {{ .LogicName }}Logic struct {
 	svcCtx *svc.ServiceContext
 }
 
-// {{ .LogicDescription }}
+// {{ .LogicName }}
 func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *{{ .LogicName }}Logic {
 	return &{{ .LogicName }}Logic{
 		Logger: logx.WithContext(ctx),

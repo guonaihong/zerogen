@@ -14,7 +14,7 @@ type {{ .StructName }} {
 type Create{{ .StructName }}Req {
 {{- range .Fields }}
 	{{- if not (or (eq .FieldName "ID") (eq .FieldName "Id") (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
-	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"`
+	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}{{ if .Nullable }},optional{{ end }}"`
 	{{- end }}
 {{- end }}
 }

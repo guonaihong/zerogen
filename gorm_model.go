@@ -4,18 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"strings"
 	"text/template"
 )
-
-// ToCamelCase converts snake_case to CamelCase
-func ToCamelCase(s string) string {
-	parts := strings.Split(s, "_")
-	for i := range parts {
-		parts[i] = strings.Title(parts[i])
-	}
-	return strings.Join(parts, "")
-}
 
 // GoType returns the Go type for a given database column type based on the framework type mapping,
 // using "default" mapping if no specific framework mapping exists.

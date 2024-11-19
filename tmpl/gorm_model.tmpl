@@ -10,7 +10,7 @@ import (
 
 type {{ .StructName }} struct {
 {{- range .Columns }}
-    {{ .FieldName }} {{ .FieldType }} `gorm:"column:{{ .ColumnName }}"`{{ if .Nullable }} // Nullable{{ end }}
+    {{ .FieldName }} {{ .FieldType }} `gorm:"column:{{ .ColumnName }}{{ if .Nullable }};default:NULL{{ end }}"`{{ if .Nullable }} // Nullable{{ end }}
 {{- end }}
 }
 
