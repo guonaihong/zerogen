@@ -29,6 +29,14 @@ func CopyCreate{{ .StructName }}ReqTo{{ .StructName }}(dest *models.{{ .StructNa
 				return err
 			}
 		}
+		{{- else if eq .CopyGoZeroToGorm "uuid.Parse" }}
+		// Use uuid.Parse
+		if src.{{ .FieldName }} != "" {
+			dest.{{ .FieldName }}, err = uuid.Parse(src.{{ .FieldName }})
+			if err != nil {
+				return err
+			}
+		}
 		{{- else if (hasPrefix .CopyGoZeroToGorm ".") }}
 		// Operate on src.{{ .FieldName }} and assign the transformed value to dest.{{ .FieldName }}
 		dest.{{ .FieldName }}, err = (src.{{ .FieldName }}{{ .CopyGoZeroToGorm }})
