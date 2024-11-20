@@ -2,11 +2,11 @@ package {{ .PackageName }}
 
 import (
 	"context"
-	"errors"
-
-	"{{ .ServiceImport }}"
-	"{{ .ModelImport }}"
-	"{{ .TypeImport }}"
+	{{- if .Imports }}
+	{{- range .Imports }}
+		"{{ . }}"
+	{{- end }}
+	{{- end }}
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -27,13 +27,13 @@ func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 // {{ .LogicName }} 执行删除 {{ .LogicName}} 的逻辑
-func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
 
-	
-	// 2. 使用 GORM 执行删除操作
-	if err := l.svcCtx.DB.Where("{{ .IdFieldName }} = ?", req.{{ .IdFieldName }}).Delete(&{{ .ModelStruct }}{}).Error; err != nil {
+	// Set the table name and delete the {{ .ModelStruct }} from the database
+	err = l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName()).Where("id = ?", req.{{ .IdFieldName }}).Delete(&{{ .ModelPkgName }}.{{ .ModelStruct }}{}).Error
+	if err != nil {
 		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
-		return &{{ .ResponseType }}{}, err
+		return nil, err
 	}
 
 	// 3. 返回成功响应

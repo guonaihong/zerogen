@@ -29,7 +29,7 @@ func (z *ZeroGen) GenerateCopyFuncs(homeDir string, copyDir string, tableName st
 	}
 	if z.ImportPathPrefix != "" {
 		data.Imports = append(data.Imports, z.ImportPathPrefix+"/types")
-		data.Imports = append(data.Imports, z.ImportPathPrefix+"/models")
+		data.Imports = append(data.Imports, z.ImportPathPrefix+"/"+z.ModelPkgName)
 	}
 
 	tpl, err := template.New("copyTemplate").Funcs(funcMap).Parse(string(tmpl))

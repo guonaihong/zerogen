@@ -64,8 +64,8 @@ type Get{{ .StructName }}ListResp {
 	Data Get{{ .StructName }}ListRespData `json:"data"`
 }
 
-// {{ .StructName }}Resp defines the response for fetching a single {{ .StructName }}.
-type {{ .StructName }}Resp {
+// Get{{ .StructName }}ByIdResp defines the response for fetching a single {{ .StructName }}.
+type Get{{ .StructName }}ByIdResp {
 	Data {{ .StructName }} `json:"data"`
 }
 {{- end }}
@@ -86,7 +86,7 @@ service {{ .ServiceName }} {
 
 	@doc "通过ID获取{{ .ModelName }}"
 	@handler Get{{ .ModelName }}ById
-	get /{{ .ResourceName }}/:id (Get{{ .ModelName }}ByIdReq) returns ({{ .ModelName }}Resp)
+	get /{{ .ResourceName }}/:id (Get{{ .ModelName }}ByIdReq) returns (Get{{ .ModelName }}ByIdResp)
 
 	@doc "更新{{ .ModelName }}信息"
 	@handler Update{{ .ModelName }}

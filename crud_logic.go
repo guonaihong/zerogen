@@ -11,17 +11,13 @@ import (
 
 // GenerateCRUDLogic generates CRUD logic code for a given model
 func (z *ZeroGen) GenerateCRUDLogic(
-	homeDir string,
-	tableName string,
 	columnSchema []ColumnSchema,
 	packageName,
-	serviceImport,
-	modelImport,
-	typeImport,
-	modelStruct,
-	modelInstanceName,
 	errorMessage string) (string, error) {
 
+	homeDir := z.Home
+	tableName := z.Table
+	modelInstanceName := ToLowerCamelCase(tableName)
 	// Get all templates
 	createTmpl, err := GetCreateTemplate(homeDir)
 	if err != nil {
@@ -54,7 +50,7 @@ func (z *ZeroGen) GenerateCRUDLogic(
 
 	for _, v := range columnSchema {
 		if strings.ToLower(v.ColumnName) == "id" {
-			idFieldName = v.ColumnName
+			idFieldName = ToCamelCase(v.ColumnName)
 			idFieldType = v.ColumnType
 		}
 	}
@@ -64,9 +60,6 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	// Prepare template data
 	data := struct {
 		PackageName       string
-		ServiceImport     string
-		ModelImport       string
-		TypeImport        string
 		LogicName         string
 		RequestType       string
 		ResponseType      string
@@ -78,20 +71,21 @@ func (z *ZeroGen) GenerateCRUDLogic(
 		IdFieldName       string
 		IdFieldType       string
 		Imports           []string
+		CopyPkgName       string
+		ModelPkgName      string
 	}{
 		PackageName:       packageName,
-		ServiceImport:     serviceImport,
-		ModelImport:       modelImport,
-		TypeImport:        typeImport,
 		RequestType:       requestType,
 		ResponseType:      responseType,
-		ModelStruct:       modelStruct,
+		ModelStruct:       ToCamelCase(tableName),
 		ModelInstanceName: modelInstanceName,
 		ErrorMessage:      errorMessage,
 		ColumnSchema:      columnSchema,
 		IdColumn:          idColumn,
 		IdFieldName:       idFieldName,
 		IdFieldType:       idFieldType,
+		CopyPkgName:       filepath.Base(z.CopyDir),
+		ModelPkgName:      z.ModelPkgName,
 	}
 
 	if z.ImportPathPrefix != "" {
@@ -108,6 +102,8 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	logicName := ToCamelCase(tableName)
 	// Create
 	data.LogicName = "Create" + logicName
+	data.RequestType = "Create" + requestType
+	data.ResponseType = "types.BaseResp"
 	tmpl, err := template.New("createTemplate").Parse(string(createTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse create template: %w", err)
@@ -120,16 +116,17 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	if err != nil {
 		return "", fmt.Errorf("failed to format create template: %w", err)
 	}
-	buf.Write(formatted)
 	all.Write(formatted)
+	buf.Reset()
 
 	if z.CrudLogicDir != "" {
-		WriteToFile(z.CrudLogicDir, "create_"+tableName+"_logic.go", buf.Bytes())
+		WriteToFile(z.CrudLogicDir, "create_"+tableName+"_logic.go", formatted)
 	}
-	buf.Reset()
 
 	// Delete
 	data.LogicName = "Delete" + logicName
+	data.RequestType = "Delete" + requestType
+	data.ResponseType = "types.BaseResp"
 	tmpl, err = template.New("deleteTemplate").Parse(string(deleteTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse delete template: %w", err)
@@ -137,14 +134,20 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute delete template: %w", err)
 	}
-	if z.CrudLogicDir != "" {
-		WriteToFile(z.CrudLogicDir, "delete_"+tableName+"_logic.go", buf.Bytes())
+	formatted, err = format.Source(buf.Bytes())
+	if err != nil {
+		return "", fmt.Errorf("failed to format delete template: %w", err)
 	}
-	all.Write(buf.Bytes())
+	all.Write(formatted)
 	buf.Reset()
+	if z.CrudLogicDir != "" {
+		WriteToFile(z.CrudLogicDir, "delete_"+tableName+"_logic.go", formatted)
+	}
 
 	// GetById
 	data.LogicName = "Get" + logicName + "ById"
+	data.RequestType = "Get" + ToCamelCase(tableName) + "ByIdReq"
+	data.ResponseType = "types.Get" + ToCamelCase(tableName) + "ByIdResp"
 	tmpl, err = template.New("getByIdTemplate").Parse(string(getByIdTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse getbyid template: %w", err)
@@ -152,14 +155,20 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute getbyid template: %w", err)
 	}
-	if z.CrudLogicDir != "" {
-		WriteToFile(z.CrudLogicDir, "get_"+tableName+"_by_id_logic.go", buf.Bytes())
+	formatted, err = format.Source(buf.Bytes())
+	if err != nil {
+		return "", fmt.Errorf("failed to format getbyid template: %w", err)
 	}
-	all.Write(buf.Bytes())
-	buf.Reset()
 
+	all.Write(formatted)
+	buf.Reset()
+	if z.CrudLogicDir != "" {
+		WriteToFile(z.CrudLogicDir, "get_"+tableName+"_by_id_logic.go", formatted)
+	}
 	// GetList
 	data.LogicName = "Get" + logicName + "List"
+	data.RequestType = "types.Get" + ToCamelCase(tableName) + "ListReq"
+	data.ResponseType = "types.Get" + ToCamelCase(tableName) + "ListResp"
 	tmpl, err = template.New("getListTemplate").Parse(string(getListTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse getlist template: %w", err)
@@ -167,14 +176,20 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute getlist template: %w", err)
 	}
-	if z.CrudLogicDir != "" {
-		WriteToFile(z.CrudLogicDir, "get_"+tableName+"_list_logic.go", buf.Bytes())
+	formatted, err = format.Source(buf.Bytes())
+	if err != nil {
+		return "", fmt.Errorf("failed to format getlist template: %w", err)
 	}
-	all.Write(buf.Bytes())
+	all.Write(formatted)
 	buf.Reset()
+	if z.CrudLogicDir != "" {
+		WriteToFile(z.CrudLogicDir, "get_"+tableName+"_list_logic.go", formatted)
+	}
 
 	// Update
 	data.LogicName = "Update" + logicName
+	data.RequestType = "Update" + ToCamelCase(tableName) + "Req"
+	data.ResponseType = "types.BaseResp"
 	tmpl, err = template.New("updateTemplate").Parse(string(updateTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse update template: %w", err)
@@ -182,11 +197,16 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to execute update template: %w", err)
 	}
-	if z.CrudLogicDir != "" {
-		WriteToFile(z.CrudLogicDir, "update_"+tableName+"_logic.go", buf.Bytes())
+
+	formatted, err = format.Source(buf.Bytes())
+	if err != nil {
+		return "", fmt.Errorf("failed to format update template: %w", err)
 	}
-	all.Write(buf.Bytes())
+	all.Write(formatted)
 	buf.Reset()
+	if z.CrudLogicDir != "" {
+		WriteToFile(z.CrudLogicDir, "update_"+tableName+"_logic.go", formatted)
+	}
 
 	return all.String(), nil
 }

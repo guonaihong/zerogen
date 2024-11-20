@@ -28,6 +28,7 @@ type ZeroGen struct {
 	ServiceName      string `clop:"long" usage:"go zero api service name"`
 	ApiGroup         string `clop:"long" usage:"go zero api group name"`
 	ImportPathPrefix string `clop:"long" usage:"copy module import path prefix"`
+	ApiUrlPrefix     string `clop:"long" usage:"api url prefix" default:"/api/v1"`
 }
 
 func WriteToFile(dir string, fileName string, data []byte) error {
@@ -101,7 +102,7 @@ func (z *ZeroGen) Run() error {
 		serviceName = z.ServiceName
 	}
 	groupName := z.ApiGroup
-	res, err = GenerateApiService(z.Home, z.Table, columns, typeMappings, "/api/v1", groupName, serviceName, z.Table)
+	res, err = GenerateApiService(z.Home, z.Table, columns, typeMappings, z.ApiUrlPrefix, groupName, serviceName, z.Table)
 	if err != nil {
 		return fmt.Errorf("failed to generate go zero api: %w", err)
 	}
@@ -134,14 +135,8 @@ func (z *ZeroGen) Run() error {
 	}
 
 	res, err = z.GenerateCRUDLogic(
-		z.Home,
-		z.Table,
 		columns,
-		"api",
-		"v1",
-		z.Table,
-		"Create"+z.Table+"Response",
-		z.Table, z.Table,
+		z.ApiGroup,
 		"Failed to create "+z.Table)
 	if err != nil {
 		return fmt.Errorf("failed to generate crud logic: %w", err)

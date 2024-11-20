@@ -2,11 +2,12 @@ package {{ .PackageName }}
 
 import (
 	"context"
-	"errors"
 
-	"{{ .ServiceImport }}"
-	"{{ .ModelImport }}"
-	"{{ .TypeImport }}"
+	{{- if .Imports }}
+	{{- range .Imports }}
+		"{{ . }}"
+	{{- end }}
+	{{- end }}
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -26,22 +27,21 @@ func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *
 	}
 }
 
-func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
-	// 1. 验证请求参数，确保 ID 存在
-	if req.{{ .IdFieldName }} == "" {
-		return &{{ .ResponseType }}{}, errors.New("{{ .IdFieldName }} is nil")
-	}
-
-	// 2. 从数据库查询记录
-	var {{ .ModelInstanceName }} {{ .ModelStruct }}
-	if err := l.svcCtx.DB.Where("{{ .IdColumn }} = ?", req.{{ .IdFieldName }}).First(&{{ .ModelInstanceName }}).Error; err != nil {
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
+	// Fetch the {{ .ModelStruct }} from the database
+	var {{ .ModelInstanceName }} {{.ModelPkgName}}.{{ .ModelStruct }}
+	if err := l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName()).Where("id = ?", req.{{ .IdFieldName }}).First(&{{ .ModelInstanceName }}).Error; err != nil {
 		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
-		return &{{ .ResponseType }}{}, err
+		return nil, err
 	}
 
-	// 3. 转换为响应类型
+	// Copy fields from {{ .ModelStruct }} to {{ .ResponseType }}
 	resp = &{{ .ResponseType }}{}
-	CopyModels{{ .ModelStruct }}ToTypes{{ .ModelStruct }}(&{{ .ModelInstanceName }}, &resp.{{ .ModelStruct }})
+	err = {{ .CopyPkgName }}.CopyModels{{ .ModelStruct }}ToTypes{{ .ModelStruct }}(&resp.Data, &{{ .ModelInstanceName }})
+	if err != nil {
+		l.Logger.Error("failed to copy {{ .ModelStruct }} to {{ .ResponseType }}", logx.Field("error", err))
+		return nil, err
+	}
 
 	return resp, nil
 }

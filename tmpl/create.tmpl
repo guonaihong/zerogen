@@ -20,7 +20,7 @@ type {{ .LogicName }}Logic struct {
 
 // {{ .LogicName }}
 func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *{{ .LogicName }}Logic {
-	return &{{ .LogicName }}{
+	return &{{ .LogicName }}Logic {
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,
@@ -28,17 +28,20 @@ func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
-	// 1. 创建新的模型实例
-	var {{ .ModelInstanceName }} {{ .ModelStruct }}
-	CopyCreate{{ .ModelStruct }}ReqTo{{ .ModelStruct }}(req, &{{ .ModelInstanceName }})
-
-	// 2. 插入数据库
-	err = l.svcCtx.DB.Model({{ .ModelStruct }}{}.TableName()).Create(&{{ .ModelInstanceName }}).Error
+	var {{ .ModelInstanceName }} {{.ModelPkgName}}.{{ .ModelStruct }}
+	// Copy fields from Create{{ .ModelStruct }}Req to {{ .ModelStruct }}
+	err = {{ .CopyPkgName }}.CopyCreate{{ .ModelStruct }}ReqTo{{ .ModelStruct }}(&{{ .ModelInstanceName }}, req)
 	if err != nil {
-		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
-		return &{{ .ResponseType }}{}, err
+		return nil, err
 	}
 
-	// 3. 返回成功响应
+	// Save the {{ .ModelInstanceName }} to the database
+	err = l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName()).Create(&{{ .ModelInstanceName }}).Error
+	if err != nil {
+		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+		return nil, err
+	}
+
+	// Prepare the response
 	return &{{ .ResponseType }}{}, nil
 }

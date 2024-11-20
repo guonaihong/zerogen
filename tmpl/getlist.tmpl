@@ -3,9 +3,11 @@ package {{ .PackageName }}
 import (
 	"context"
 
-	"{{ .ServiceImport }}"
-	"{{ .ModelImport }}"
-	"{{ .TypeImport }}"
+	{{- if .Imports }}
+	{{- range .Imports }}
+		"{{ . }}"
+	{{- end }}
+	{{- end }}
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -26,34 +28,41 @@ func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
-	// 1. 初始化响应
-	resp = &{{ .ResponseType }}{
-		List: make([]{{ .ModelStruct }}, 0),
+	var items []{{.ModelPkgName}}.{{ .ModelStruct }}
+
+	// Build the base query
+	query := l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName())
+
+	// Apply pagination
+	if req.PageNum > 0 && req.PageSize > 0 {
+		offset := (req.PageNum - 1) * req.PageSize
+		query = query.Offset(offset).Limit(req.PageSize)
 	}
 
-	// 2. 计算分页参数
-	offset := (req.Page - 1) * req.Limit
+	// Execute the query
+	if err = query.Find(&items).Error; err != nil {
+		return nil, err
+	}
 
-	// 3. 查询总记录数
+	// Get total count
 	var total int64
-	if err := l.svcCtx.DB.Model(&{{ .ModelStruct }}{}).Count(&total).Error; err != nil {
-		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
-		return nil, err
-	}
-	resp.Total = int(total)
-
-	// 4. 查询分页数据
-	var modelList []{{ .ModelStruct }}
-	if err := l.svcCtx.DB.Offset(offset).Limit(req.Limit).Find(&modelList).Error; err != nil {
-		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+	if err = query.Count(&total).Error; err != nil {
 		return nil, err
 	}
 
-	// 5. 转换为响应类型
-	for _, model := range modelList {
-		var item {{ .ModelStruct }}
-		CopyModels{{ .ModelStruct }}ToTypes{{ .ModelStruct }}(&model, &item)
-		resp.List = append(resp.List, item)
+	// Initialize response
+	resp = &{{ .ResponseType }}{
+		Data: {{ .ResponseType }}Data{
+			List:  make([]types.{{ .ModelStruct }}, len(items)),
+			Total: int(total),
+		},
+	}
+
+	// Copy model data to response type
+	for i, item := range items {
+		if err = mycopy.CopyModels{{ .ModelStruct }}ToTypes{{ .ModelStruct }}(&resp.Data.List[i], &item); err != nil {
+			return nil, err
+		}
 	}
 
 	return resp, nil
