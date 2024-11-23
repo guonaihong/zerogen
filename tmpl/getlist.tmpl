@@ -39,6 +39,25 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp 
 		query = query.Offset(offset).Limit(req.PageSize)
 	}
 
+	{{- range .Fields }}
+	{{- if not (or (eq .FieldName "ID") (eq .FieldName "Id") (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
+
+	{{- if (or (eq .FieldType "int") (eq .FieldType "int16") (eq .FieldType "int64"))}}
+	if req.{{ .FieldName }} != 0 {
+		query = query.Where("{{ .SnakeCaseName}} = ?", req.{{ .FieldName }})
+	}
+	{{- else if (or (eq .FieldType "string")) }}
+	if len(req.{{ .FieldName }}) > 0 {
+		query = query.Where("{{ .SnakeCaseName}} = ?", req.{{ .FieldName }})
+	}
+	{{- else if (or (eq .FieldType "[]string")) }}
+	if len(req.{{ .FieldName }}) > 0 {
+		query = query.Where("{{ .SnakeCaseName}} in (?)", req.{{ .FieldName }})
+	}
+	{{- end }}
+	{{- end }}
+	{{- end }}
+
 	// Execute the query
 	if err = query.Find(&items).Error; err != nil {
 		return nil, err

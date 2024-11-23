@@ -19,6 +19,15 @@ type Create{{ .StructName }}Req {
 {{- end }}
 }
 
+type Create{{ .StructName }}RespData {
+	Id string `json:"id"`
+}
+type Create{{ .StructName }}Resp {
+	Status int64  `json:"status"`
+	Msg    string `json:"msg,default=ok"`
+	Data Create{{ .StructName }}RespData `json:"data"`
+}
+
 // Update{{ .StructName }}Req defines the request for updating a {{ .StructName }}.
 type Update{{ .StructName }}Req {
 {{- range .Fields }}
@@ -52,6 +61,11 @@ type Get{{ .StructName }}ByIdReq {
 type Get{{ .StructName }}ListReq {
 	PageNum  int `form:"pageNum,optional"`  // Pagination: page number
 	PageSize int `form:"pageSize,optional"` // Pagination: limit per page
+{{- range .Fields }}
+	{{- if not (or (eq .FieldName "ID") (eq .FieldName "Id") (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
+	{{ .FieldName }} {{ .FieldType }} `form:"{{ .JSONName }},optional"`
+	{{- end }}
+{{- end }}
 }
 
 // Get{{ .StructName }}ListResp defines the response for fetching a list of {{ .StructName }}.
@@ -78,7 +92,7 @@ type Get{{ .StructName }}ByIdResp {
 service {{ .ServiceName }} {
 	@doc "创建新的{{ .ModelName }}"
 	@handler Create{{ .ModelName }}
-	post /{{ .ResourceName }} (Create{{ .ModelName }}Req) returns (BaseResp)
+	post /{{ .ResourceName }} (Create{{ .ModelName }}Req) returns (Create{{ .ModelName }}Resp)
 
 	@doc "获取{{ .ModelName }}列表"
 	@handler Get{{ .ModelName }}List

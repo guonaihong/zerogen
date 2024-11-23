@@ -23,6 +23,7 @@ float:
   default: "float32"
 double:
   default: "float64"
+
 timestamp:
   default: "time.Time"
   gozero: string
@@ -38,12 +39,15 @@ timestamp:
   copyGoZeroToGorm: time.Parse
   copyGormToGoZero: .Format(time.RFC3339)
   copyPath: time
+
 date:
   default: "time.Time"
+
 "text[]":
   default: "pq.StringArray"
   gormImportPath: "github.com/lib/pq"
   gozero: "[]string"
+
 "uuid[]":
   default: "pq.StringArray"
   gormImportPath: "github.com/lib/pq"

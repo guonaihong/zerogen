@@ -43,5 +43,8 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 	}
 
 	// Prepare the response
-	return &{{ .ResponseType }}{}, nil
+	resp = &{{ .ResponseType }}{}
+	resp.Data.Id = {{ if eq .IdFieldType "uuid" }}{{ .ModelInstanceName }}.Id.String(){{ else }}{{ .ModelInstanceName }}.Id{{ end }}
+
+	return resp, nil
 }

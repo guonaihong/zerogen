@@ -57,6 +57,12 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	requestType := ToCamelCase(tableName) + "Req"
 	responseType := ToCamelCase(tableName) + "Resp"
 
+	// Get type mappings
+	typeMappings, err := GetTypeMappings(z.Home)
+	if err != nil {
+		return "", fmt.Errorf("failed to get type mappings: %w", err)
+	}
+	structInfo := schemaToStruct(tableName, columnSchema, typeMappings, "copy")
 	// Prepare template data
 	data := struct {
 		PackageName       string
@@ -73,6 +79,7 @@ func (z *ZeroGen) GenerateCRUDLogic(
 		Imports           []string
 		CopyPkgName       string
 		ModelPkgName      string
+		Fields            []Field
 	}{
 		PackageName:       packageName,
 		RequestType:       requestType,
@@ -86,16 +93,34 @@ func (z *ZeroGen) GenerateCRUDLogic(
 		IdFieldType:       idFieldType,
 		CopyPkgName:       filepath.Base(z.CopyDir),
 		ModelPkgName:      z.ModelPkgName,
+		Fields:            structInfo.Fields,
 	}
 
+	createAndGetImport := []string{}
 	if z.ImportPathPrefix != "" {
-		data.Imports = append(data.Imports, z.ImportPathPrefix+"/types")
-		data.Imports = append(data.Imports, z.ImportPathPrefix+"/models")
-		data.Imports = append(data.Imports, z.ImportPathPrefix+"/svc")
+		createAndGetImport = append(createAndGetImport, z.ImportPathPrefix+"/types")
+		createAndGetImport = append(createAndGetImport, z.ImportPathPrefix+"/models")
+		createAndGetImport = append(createAndGetImport, z.ImportPathPrefix+"/svc")
 		if z.CopyDir != "" {
-			data.Imports = append(data.Imports, z.ImportPathPrefix+"/"+filepath.Base(z.CopyDir))
+			createAndGetImport = append(createAndGetImport, z.ImportPathPrefix+"/"+filepath.Base(z.CopyDir))
 		}
 	}
+	deleteImport := []string{}
+	if z.ImportPathPrefix != "" {
+		deleteImport = append(deleteImport, z.ImportPathPrefix+"/types")
+		deleteImport = append(deleteImport, z.ImportPathPrefix+"/models")
+		deleteImport = append(deleteImport, z.ImportPathPrefix+"/svc")
+	}
+
+	updateImport := []string{}
+	if z.ImportPathPrefix != "" {
+		updateImport = append(updateImport, z.ImportPathPrefix+"/types")
+		updateImport = append(updateImport, z.ImportPathPrefix+"/models")
+		updateImport = append(updateImport, z.ImportPathPrefix+"/svc")
+		updateImport = append(updateImport, "github.com/fatih/structs")
+	}
+
+	data.Imports = createAndGetImport
 	// Execute all templates
 	var buf bytes.Buffer
 	var all bytes.Buffer
@@ -103,7 +128,7 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	// Create
 	data.LogicName = "Create" + logicName
 	data.RequestType = "Create" + requestType
-	data.ResponseType = "types.BaseResp"
+	data.ResponseType = "types.Create" + ToCamelCase(tableName) + "Resp"
 	tmpl, err := template.New("createTemplate").Parse(string(createTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse create template: %w", err)
@@ -127,6 +152,7 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	data.LogicName = "Delete" + logicName
 	data.RequestType = "Delete" + requestType
 	data.ResponseType = "types.BaseResp"
+	data.Imports = deleteImport
 	tmpl, err = template.New("deleteTemplate").Parse(string(deleteTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse delete template: %w", err)
@@ -148,6 +174,7 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	data.LogicName = "Get" + logicName + "ById"
 	data.RequestType = "Get" + ToCamelCase(tableName) + "ByIdReq"
 	data.ResponseType = "types.Get" + ToCamelCase(tableName) + "ByIdResp"
+	data.Imports = createAndGetImport
 	tmpl, err = template.New("getByIdTemplate").Parse(string(getByIdTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse getbyid template: %w", err)
@@ -169,6 +196,7 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	data.LogicName = "Get" + logicName + "List"
 	data.RequestType = "types.Get" + ToCamelCase(tableName) + "ListReq"
 	data.ResponseType = "types.Get" + ToCamelCase(tableName) + "ListResp"
+	data.Imports = createAndGetImport
 	tmpl, err = template.New("getListTemplate").Parse(string(getListTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse getlist template: %w", err)
@@ -190,6 +218,7 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	data.LogicName = "Update" + logicName
 	data.RequestType = "Update" + ToCamelCase(tableName) + "Req"
 	data.ResponseType = "types.BaseResp"
+	data.Imports = updateImport
 	tmpl, err = template.New("updateTemplate").Parse(string(updateTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse update template: %w", err)
