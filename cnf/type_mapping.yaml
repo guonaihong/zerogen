@@ -52,3 +52,5 @@ date:
   default: "pq.StringArray"
   gormImportPath: "github.com/lib/pq"
   gozero: "[]string"
+"jsonb":
+  default: "map[string]interface{}"
