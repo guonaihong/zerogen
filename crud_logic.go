@@ -62,7 +62,7 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	if err != nil {
 		return "", fmt.Errorf("failed to get type mappings: %w", err)
 	}
-	structInfo := schemaToStruct(tableName, columnSchema, typeMappings, "copy")
+	structInfo := schemaToStruct(tableName, columnSchema, typeMappings, "gozero")
 	// Prepare template data
 	data := struct {
 		PackageName       string

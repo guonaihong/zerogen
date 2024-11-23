@@ -42,7 +42,7 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp 
 	{{- range .Fields }}
 	{{- if not (or (eq .FieldName "ID") (eq .FieldName "Id") (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
 
-	{{- if (or (eq .FieldType "int") (eq .FieldType "int16") (eq .FieldType "int64"))}}
+	{{- if (or (eq .FieldType "int") (eq .FieldType "int16") (eq .FieldType "int64") (eq .FieldType "float32") (eq .FieldType "float64"))}}
 	if req.{{ .FieldName }} != 0 {
 		query = query.Where("{{ .SnakeCaseName}} = ?", req.{{ .FieldName }})
 	}
