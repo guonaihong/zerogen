@@ -13,7 +13,7 @@ import (
 
 type {{ .StructName }} struct {
 {{- range .Columns }}
-    {{ .FieldName }} {{ .FieldType }} `gorm:"column:{{ .ColumnName }}{{ if .Nullable }};default:NULL{{ end }}{{ if eq .FieldType "pq.StringArray" }};type:text[]{{ end }}"`{{ if .Nullable }} // Nullable{{ end }}
+    {{ .FieldName }} {{ .FieldType }} `gorm:"column:{{ .ColumnName }}{{ if .Nullable }};default:NULL{{ end }}{{ if eq .FieldType "pq.StringArray" }};type:text[]{{ end }}{{ if eq .FieldType "map[string]interface{}" }};type:jsonb{{ end }}"`{{ if .Nullable }} // Nullable{{ end }}
 {{- end }}
 }
 
