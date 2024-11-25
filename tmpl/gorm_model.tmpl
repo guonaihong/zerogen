@@ -2,18 +2,50 @@
 // This code is generated from template. DO NOT EDIT.
 
 package {{ .PackageName }}
+
 {{- if .Imports }}
 import (
-{{- range .Imports }}
+    {{- range .Imports }}
     "{{ . }}"
-{{- end }}
+    {{- end }}
+    {{- range .Columns }}
+    {{- if eq .FieldType "map[string]interface{}" }}
+    "encoding/json"
+    "errors"
+    {{- end }}
+    {{- if eq .FieldName "DeletedAt" }}
+    "gorm.io/gorm"
+    {{- end }}
+    {{- end }}
 )
 {{- end }}
 
 
+{{- range .Columns }}
+    {{- if eq .FieldType "map[string]interface{}" }}
+    // {{ .FieldName }}JSONB represents a JSONB type for {{ .FieldName }}
+    type {{ .FieldName }}JSONB map[string]interface{}
+    
+    // Scan implements the sql.Scanner interface for {{ .FieldName }}JSONB
+    func (a *{{ .FieldName }}JSONB) Scan(value interface{}) error {
+        b, ok := value.([]byte)
+        if !ok {
+            return errors.New("type assertion to []byte failed")
+        }
+        return json.Unmarshal(b, &a)
+    }
+    {{- end }}
+{{- end }}
+
 type {{ .StructName }} struct {
 {{- range .Columns }}
-    {{ .FieldName }} {{ .FieldType }} `gorm:"column:{{ .ColumnName }}{{ if .Nullable }};default:NULL{{ end }}{{ if eq .FieldType "pq.StringArray" }};type:text[]{{ end }}{{ if eq .FieldType "map[string]interface{}" }};type:jsonb{{ end }}"`{{ if .Nullable }} // Nullable{{ end }}
+    {{- if eq .FieldName "DeletedAt" }}
+    {{ .FieldName }} gorm.DeletedAt `gorm:"column:{{ .ColumnName }}{{ if .Nullable }};default:NULL{{ end }}"` {{ if .Nullable }}// Nullable{{ end }}
+    {{- else if eq .FieldType "map[string]interface{}" }}
+    {{ .FieldName }} {{ .FieldName }}JSONB `gorm:"column:{{ .ColumnName }}{{ if .Nullable }};default:NULL{{ end }};type:jsonb"` {{ if .Nullable }}// Nullable{{ end }}
+    {{- else }}
+    {{ .FieldName }} {{ .FieldType }} `gorm:"column:{{ .ColumnName }}{{ if .Nullable }};default:NULL{{ end }}{{ if eq .FieldType "pq.StringArray" }};type:text[]{{ end }}"` {{ if .Nullable }}// Nullable{{ end }}
+    {{- end }}
 {{- end }}
 }
 
