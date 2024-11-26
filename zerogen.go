@@ -14,21 +14,43 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+type ZeroGenCore struct {
+	Dsn              string `clop:"long" usage:"database dsn" yaml:"dsn"`
+	ModelDir         string `clop:"long" usage:"gorm model output directory" yaml:"modelDir"`
+	GoZeroApiDir     string `clop:"long" usage:"go zero api output directory" yaml:"goZeroApiDir"`
+	CopyDir          string `clop:"long" usage:"copy functions output directory" yaml:"copyDir"`
+	CrudLogicDir     string `clop:"long" usage:"crud logic output directory" yaml:"crudLogicDir"`
+	Table            string `clop:"long" usage:"table name" yaml:"table"`
+	Home             string `clop:"long" usage:"template home directory" yaml:"home"`
+	Debug            bool   `clop:"long" usage:"debug mode" yaml:"debug"`
+	ModelPkgName     string `clop:"long" usage:"gorm model package name" default:"models" yaml:"modelPkgName"`
+	ApiPrefix        string `clop:"long" usage:"go zero api file name prefix" yaml:"apiPrefix"`
+	ServiceName      string `clop:"long" usage:"go zero api service name" yaml:"serviceName"`
+	ApiGroup         string `clop:"long" usage:"go zero api group name" yaml:"apiGroup"`
+	ImportPathPrefix string `clop:"long" usage:"copy module import path prefix" yaml:"importPathPrefix"`
+	ApiUrlPrefix     string `clop:"long" usage:"api url prefix" default:"/api/v1" yaml:"apiUrlPrefix"`
+}
 type ZeroGen struct {
-	Dsn              string `clop:"long" usage:"database dsn"`
-	ModelDir         string `clop:"long" usage:"gorm model output directory"`
-	GoZeroApiDir     string `clop:"long" usage:"go zero api output directory"`
-	CopyDir          string `clop:"long" usage:"copy functions output directory"`
-	CrudLogicDir     string `clop:"long" usage:"crud logic output directory"`
-	Table            string `clop:"long" usage:"table name"`
-	Home             string `clop:"long" usage:"template home directory"`
-	Debug            bool   `clop:"long" usage:"debug mode"`
-	ModelPkgName     string `clop:"long" usage:"gorm model package name" default:"models"`
-	ApiPrefix        string `clop:"long" usage:"go zero api file name prefix"`
-	ServiceName      string `clop:"long" usage:"go zero api service name"`
-	ApiGroup         string `clop:"long" usage:"go zero api group name"`
-	ImportPathPrefix string `clop:"long" usage:"copy module import path prefix"`
-	ApiUrlPrefix     string `clop:"long" usage:"api url prefix" default:"/api/v1"`
+	ConfigFile string `clop:"-f;long" usage:"local configuration file path"`
+	ZeroGenCore
+}
+
+type copyWithProtocol struct {
+	Protocol string `yaml:"protocol"`
+	Cmd      string `yaml:"cmd"`
+}
+
+type after struct {
+	Copy []copyWithProtocol `yaml:"copy"`
+}
+type zeroConfigWithAction struct {
+	Table ZeroGenCore `yaml:"table"`
+	After after       `yaml:"after"`
+}
+type ZeroConfig struct {
+	Version string                 `yaml:"version"`
+	Global  zeroConfigWithAction   `yaml:"global"`
+	Local   []zeroConfigWithAction `yaml:"local"`
 }
 
 func WriteToFile(dir string, fileName string, data []byte) error {
