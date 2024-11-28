@@ -13,6 +13,7 @@ type Field struct {
 	CopyGoZeroToGorm string `yaml:"copyGoZeroToGorm"`
 	CopyGormToGoZero string `yaml:"copyGormToGoZero"`
 	Nullable         bool
+	Comment          string // Column comment
 }
 
 type StructInfo struct {
@@ -85,6 +86,7 @@ func schemaToStruct(tableName string, schema []ColumnSchema, typeMappings map[st
 			CopyGoZeroToGorm: typeMapping.CopyGoZeroToGorm,
 			CopyGormToGoZero: typeMapping.CopyGormToGoZero,
 			Nullable:         col.Nullable,
+			Comment:          col.Comment,
 		}
 		fields = append(fields, field)
 		if modelName == "copy" {

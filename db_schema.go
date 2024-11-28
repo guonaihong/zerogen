@@ -13,6 +13,7 @@ type ColumnSchema struct {
 	Nullable     bool    // Column nullable, e.g., true, false
 	Length       int64   // Column length, e.g., 128, 9223372036854775807
 	DefaultValue *string // Default value of the column, e.g., "now()"
+	Comment      string  // Column comment, e.g., "Primary key", "Created time"
 }
 
 func GetTableSchema(db *gorm.DB, tableName string) ([]ColumnSchema, error) {
@@ -34,12 +35,14 @@ func GetTableSchema(db *gorm.DB, tableName string) ([]ColumnSchema, error) {
 		if ok {
 			defaultValueStr = &defaultValue
 		}
+		comment, _ := column.Comment()
 		columnSchema := ColumnSchema{
 			ColumnName:   name,
 			ColumnType:   dataType,
 			Nullable:     nullable,
 			Length:       length,
 			DefaultValue: defaultValueStr,
+			Comment:      comment,
 		}
 		columnSchemas = append(columnSchemas, columnSchema)
 		fmt.Println(columnSchema)

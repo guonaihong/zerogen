@@ -5,7 +5,7 @@
 type {{ .StructName }} {
 {{- range .Fields }}
 	{{- if not (eq .FieldName "DeletedAt") }}
-	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"`
+	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}"` {{- if .Comment }} // {{ .Comment }}{{ end }}
 	{{- end }}
 {{- end }}
 }
@@ -14,7 +14,7 @@ type {{ .StructName }} {
 type Create{{ .StructName }}Req {
 {{- range .Fields }}
 	{{- if not (or (eq .FieldName "ID") (eq .FieldName "Id") (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
-	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}{{ if .Nullable }},optional{{ end }}"`
+	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }}{{ if .Nullable }},optional{{ end }}"` {{- if .Comment }} // {{ .Comment }}{{ end }}
 	{{- end }}
 {{- end }}
 }
@@ -34,7 +34,7 @@ type Update{{ .StructName }}Req {
 	{{- if or (eq .FieldName "ID") (eq .FieldName "Id") }}
 	{{ .FieldName }} {{ .FieldType }} `path:"id" tomap:"{{.SnakeCaseName}},omitempty"` // Primary key for identification
 	{{- else if not (or (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
-	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }},optional" tomap:"{{.SnakeCaseName}},omitempty"`
+	{{ .FieldName }} {{ .FieldType }} `json:"{{ .JSONName }},optional" tomap:"{{.SnakeCaseName}},omitempty"` {{- if .Comment }} // {{ .Comment }}{{ end }}
 	{{- end }}
 {{- end }}
 }
@@ -63,7 +63,7 @@ type Get{{ .StructName }}ListReq {
 	PageSize int `form:"pageSize,optional"` // Pagination: limit per page
 {{- range .Fields }}
 	{{- if not (or (eq .FieldName "ID") (eq .FieldName "Id") (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
-	{{ .FieldName }} {{ .FieldType }} `form:"{{ .JSONName }},optional"`
+	{{ .FieldName }} {{ .FieldType }} `form:"{{ .JSONName }},optional"` {{- if .Comment }} // {{ .Comment }}{{ end }}
 	{{- end }}
 {{- end }}
 }
