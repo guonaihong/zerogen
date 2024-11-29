@@ -72,14 +72,14 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp 
 	// Initialize response
 	resp = &{{ .ResponseType }}{
 		Data: {{ .ResponseType }}Data{
-			List:  make([]types.{{ .ModelStruct }}, len(items)),
+			Items:  make([]types.{{ .ModelStruct }}, len(items)),
 			Total: int(total),
 		},
 	}
 
 	// Copy model data to response type
 	for i, item := range items {
-		if err = mycopy.CopyModels{{ .ModelStruct }}ToTypes{{ .ModelStruct }}(&resp.Data.List[i], &item); err != nil {
+		if err = mycopy.CopyModels{{ .ModelStruct }}ToTypes{{ .ModelStruct }}(&resp.Data.Items[i], &item); err != nil {
 			return nil, err
 		}
 	}

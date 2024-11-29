@@ -71,7 +71,7 @@ type Get{{ .StructName }}ListReq {
 // Get{{ .StructName }}ListResp defines the response for fetching a list of {{ .StructName }}.
 type Get{{ .StructName }}ListRespData {
 	Total int              `json:"total"` // Total number of records
-	List  []{{ .StructName }} `json:"list"`  // List of {{ .StructName }}
+	Items  []{{ .StructName }} `json:"items"`  // items of {{ .StructName }}
 }
 
 type Get{{ .StructName }}ListResp {
