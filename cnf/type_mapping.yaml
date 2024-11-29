@@ -19,6 +19,8 @@ text:
   default: "string"
 bool:
   default: "bool"
+boolean:
+  default: "bool"
 float:
   default: "float32"
 double:
