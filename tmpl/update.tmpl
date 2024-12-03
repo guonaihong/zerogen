@@ -38,7 +38,7 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 	delete(m, "id")
 	// Update the {{ .ModelStruct }} in the database
 	if err := l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName()).Where("id = ?", req.Id).Updates(m).Error; err != nil {
-		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+		l.Logger.Error("failed to update record", logx.Field("error", err))
 		return nil, err
 	}
 

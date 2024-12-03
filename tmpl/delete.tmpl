@@ -32,7 +32,7 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 	// Set the table name and delete the {{ .ModelStruct }} from the database
 	err = l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName()).Where("id = ?", req.{{ .IdFieldName }}).Delete(&{{ .ModelPkgName }}.{{ .ModelStruct }}{}).Error
 	if err != nil {
-		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+		l.Logger.Error("failed to delete record", logx.Field("error", err))
 		return nil, err
 	}
 

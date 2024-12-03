@@ -158,8 +158,7 @@ func (z *ZeroGen) Run() error {
 
 	res, err = z.GenerateCRUDLogic(
 		columns,
-		z.ApiGroup,
-		"Failed to create "+z.Table)
+		z.ApiGroup)
 	if err != nil {
 		return fmt.Errorf("failed to generate crud logic: %w", err)
 	}

@@ -33,12 +33,6 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp 
 	// Build the base query
 	query := l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName())
 
-	// Apply pagination
-	if req.PageNum > 0 && req.PageSize > 0 {
-		offset := (req.PageNum - 1) * req.PageSize
-		query = query.Offset(offset).Limit(req.PageSize)
-	}
-
 	{{- range .Fields }}
 	{{- if not (or (eq .FieldName "ID") (eq .FieldName "Id") (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
 
@@ -58,14 +52,20 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp 
 	{{- end }}
 	{{- end }}
 
-	// Execute the query
-	if err = query.Find(&items).Error; err != nil {
-		return nil, err
-	}
-
 	// Get total count
 	var total int64
 	if err = query.Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// Apply pagination
+	if req.PageNum > 0 && req.PageSize > 0 {
+		offset := (req.PageNum - 1) * req.PageSize
+		query = query.Offset(offset).Limit(req.PageSize)
+	}
+
+	// Execute the query
+	if err = query.Find(&items).Error; err != nil {
 		return nil, err
 	}
 

@@ -31,7 +31,7 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 	// Fetch the {{ .ModelStruct }} from the database
 	var {{ .ModelInstanceName }} {{.ModelPkgName}}.{{ .ModelStruct }}
 	if err := l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName()).Where("id = ?", req.{{ .IdFieldName }}).First(&{{ .ModelInstanceName }}).Error; err != nil {
-		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+		l.Logger.Error("failed to get record from database", logx.Field("error", err))
 		return nil, err
 	}
 

@@ -38,7 +38,7 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 	// Save the {{ .ModelInstanceName }} to the database
 	err = l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName()).Create(&{{ .ModelInstanceName }}).Error
 	if err != nil {
-		l.Logger.Error("{{ .ErrorMessage }}", logx.Field("error", err))
+		l.Logger.Error("failed to create record", logx.Field("error", err))
 		return nil, err
 	}
 

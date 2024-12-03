@@ -73,7 +73,15 @@ func CopyModels{{ .StructName }}ToTypes{{ .StructName }}(dest *types.{{ .StructN
 		}
 		{{- else if (hasPrefix .CopyGormToGoZero ".") }}
 		// Operate on src.{{ .FieldName }} and assign the transformed value to dest.{{ .FieldName }}
-		dest.{{ .FieldName }} = src.{{ .FieldName }}{{ .CopyGormToGoZero }}
+
+		{{- if eq .FieldType "uuid.UUID" }}
+		if src.{{ .FieldName }} != uuid.Nil {
+			dest.{{ .FieldName }} = src.{{ .FieldName }}{{ .CopyGormToGoZero }}
+		}
+		{{- else }}
+			dest.{{ .FieldName }} = src.{{ .FieldName }}{{ .CopyGormToGoZero }}
+		{{- end }}
+
 		{{- else }}
 		// Call the package-level function {{ .CopyGormToGoZero }}
 		dest.{{ .FieldName }}, err = {{ .CopyGormToGoZero }}(src.{{ .FieldName }})

@@ -12,8 +12,7 @@ import (
 // GenerateCRUDLogic generates CRUD logic code for a given model
 func (z *ZeroGen) GenerateCRUDLogic(
 	columnSchema []ColumnSchema,
-	packageName,
-	errorMessage string) (string, error) {
+	packageName string) (string, error) {
 
 	homeDir := z.Home
 	tableName := z.Table
@@ -86,7 +85,6 @@ func (z *ZeroGen) GenerateCRUDLogic(
 		ResponseType:      responseType,
 		ModelStruct:       ToCamelCase(tableName),
 		ModelInstanceName: modelInstanceName,
-		ErrorMessage:      errorMessage,
 		ColumnSchema:      columnSchema,
 		IdColumn:          idColumn,
 		IdFieldName:       idFieldName,
