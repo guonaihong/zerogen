@@ -195,7 +195,7 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	data.RequestType = "types.Get" + ToCamelCase(tableName) + "ListReq"
 	data.ResponseType = "types.Get" + ToCamelCase(tableName) + "ListResp"
 	data.Imports = createAndGetImport
-	tmpl, err = template.New("getListTemplate").Parse(string(getListTmpl))
+	tmpl, err = template.New("getListTemplate").Funcs(funcMap).Parse(string(getListTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse getlist template: %w", err)
 	}
@@ -217,7 +217,7 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	data.RequestType = "Update" + ToCamelCase(tableName) + "Req"
 	data.ResponseType = "types.BaseResp"
 	data.Imports = updateImport
-	tmpl, err = template.New("updateTemplate").Parse(string(updateTmpl))
+	tmpl, err = template.New("updateTemplate").Funcs(funcMap).Parse(string(updateTmpl))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse update template: %w", err)
 	}

@@ -7,4 +7,6 @@ import (
 
 var funcMap = template.FuncMap{
 	"hasPrefix": strings.HasPrefix,
+	"contains":  strings.Contains,
+	"toLower":   strings.ToLower,
 }

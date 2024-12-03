@@ -9,6 +9,13 @@ import (
 	{{- end }}
 	{{- end }}
 
+	{{- range .Fields }}
+	{{- if contains (toLower .FieldName) "name" }}
+		"strings"
+		{{- break }}
+	{{- end }}
+	{{- end }}
+
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -42,7 +49,11 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp 
 	}
 	{{- else if (or (eq .FieldType "string")) }}
 	if len(req.{{ .FieldName }}) > 0 {
-		query = query.Where("{{ .SnakeCaseName}} = ?", req.{{ .FieldName }})
+		{{- if contains (toLower .FieldName) "name" }}
+			query = query.Where("{{ .SnakeCaseName }} LIKE ?", "%" + strings.ToLower(req.{{ .FieldName }}) + "%")
+		{{- else }}
+			query = query.Where("{{ .SnakeCaseName}} = ?", req.{{ .FieldName }})
+		{{- end }}
 	}
 	{{- else if (or (eq .FieldType "[]string")) }}
 	if len(req.{{ .FieldName }}) > 0 {

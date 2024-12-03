@@ -11,6 +11,12 @@ import (
 	{{- end }}
 
 	"github.com/zeromicro/go-zero/core/logx"
+	{{- range .Fields }}
+	{{- if hasPrefix .FieldType "[]" }}
+	"github.com/lib/pq"
+	{{- break }}
+	{{- end }}
+	{{- end }}
 )
 
 type {{ .LogicName }}Logic struct {
@@ -33,6 +39,14 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 	conv := structs.New(req)
 	conv.TagName = "tomap"
 	m := conv.Map()
+
+	{{- range .Fields }}
+	{{- if hasPrefix .FieldType "[]" }}
+	if v, ok := m["{{.SnakeCaseName}}"]; ok {
+		m["{{.SnakeCaseName}}"] = pq.Array(v)
+	}
+	{{- end }}
+	{{- end }}
 
 	// Remove the "id" field from the map
 	delete(m, "id")
