@@ -54,7 +54,7 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp 
 
 	// Get total count
 	var total int64
-	if err = query.Count(&total).Error; err != nil {
+	if err = query.Where("deleted_at IS NULL").Count(&total).Error; err != nil {
 		return nil, err
 	}
 
