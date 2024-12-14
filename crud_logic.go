@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -79,6 +80,10 @@ func (z *ZeroGen) GenerateCRUDLogic(
 		CopyPkgName       string
 		ModelPkgName      string
 		Fields            []Field
+		CreateHook        bool
+		UpdateHook        bool
+		GetListHook       bool
+		GetByIdHook       bool
 	}{
 		PackageName:       packageName,
 		RequestType:       requestType,
@@ -92,6 +97,10 @@ func (z *ZeroGen) GenerateCRUDLogic(
 		CopyPkgName:       filepath.Base(z.CopyDir),
 		ModelPkgName:      z.ModelPkgName,
 		Fields:            structInfo.Fields,
+		CreateHook:        z.CreateHook,
+		UpdateHook:        z.UpdateHook,
+		GetListHook:       z.GetListHook,
+		GetByIdHook:       z.GetByIdHook,
 	}
 
 	createAndGetImport := []string{}
@@ -144,6 +153,25 @@ func (z *ZeroGen) GenerateCRUDLogic(
 
 	if z.CrudLogicDir != "" {
 		WriteToFile(z.CrudLogicDir, "create_"+tableName+"_logic.go", formatted)
+		if z.CreateHook {
+			hookFileName := "create_hook_" + tableName + "_logic.go"
+			hookFilePath := filepath.Join(z.CrudLogicDir, hookFileName)
+			if _, err := os.Stat(hookFilePath); os.IsNotExist(err) {
+				hookTmpl, err := template.New("createHookTemplate").Funcs(funcMap).Parse(string(createHookTemplate))
+				if err != nil {
+					return "", fmt.Errorf("failed to parse create hook template: %w", err)
+				}
+				if err := hookTmpl.Execute(&buf, data); err != nil {
+					return "", fmt.Errorf("failed to execute create hook template: %w", err)
+				}
+				formatted, err := format.Source(buf.Bytes())
+				if err != nil {
+					return "", fmt.Errorf("failed to format create hook template: %w", err)
+				}
+				WriteToFile(z.CrudLogicDir, hookFileName, formatted)
+				buf.Reset()
+			}
+		}
 	}
 
 	// Delete
@@ -189,6 +217,25 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	buf.Reset()
 	if z.CrudLogicDir != "" {
 		WriteToFile(z.CrudLogicDir, "get_"+tableName+"_by_id_logic.go", formatted)
+		if z.GetByIdHook {
+			hookFileName := "getbyid_hook_" + tableName + "_logic.go"
+			hookFilePath := filepath.Join(z.CrudLogicDir, hookFileName)
+			if _, err := os.Stat(hookFilePath); os.IsNotExist(err) {
+				hookTmpl, err := template.New("getByIdHookTemplate").Funcs(funcMap).Parse(string(getByIdHookTemplate))
+				if err != nil {
+					return "", fmt.Errorf("failed to parse getbyid hook template: %w", err)
+				}
+				if err := hookTmpl.Execute(&buf, data); err != nil {
+					return "", fmt.Errorf("failed to execute getbyid hook template: %w", err)
+				}
+				formatted, err = format.Source(buf.Bytes())
+				if err != nil {
+					return "", fmt.Errorf("failed to format getbyid hook template: %w", err)
+				}
+				WriteToFile(z.CrudLogicDir, hookFileName, formatted)
+				buf.Reset()
+			}
+		}
 	}
 	// GetList
 	data.LogicName = "Get" + logicName + "List"
@@ -210,6 +257,25 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	buf.Reset()
 	if z.CrudLogicDir != "" {
 		WriteToFile(z.CrudLogicDir, "get_"+tableName+"_list_logic.go", formatted)
+		if z.GetListHook {
+			hookFileName := "getlist_hook_" + tableName + "_logic.go"
+			hookFilePath := filepath.Join(z.CrudLogicDir, hookFileName)
+			if _, err := os.Stat(hookFilePath); os.IsNotExist(err) {
+				hookTmpl, err := template.New("getListHookTemplate").Funcs(funcMap).Parse(string(getListHookTemplate))
+				if err != nil {
+					return "", fmt.Errorf("failed to parse getlist hook template: %w", err)
+				}
+				if err := hookTmpl.Execute(&buf, data); err != nil {
+					return "", fmt.Errorf("failed to execute getlist hook template: %w", err)
+				}
+				formatted, err = format.Source(buf.Bytes())
+				if err != nil {
+					return "", fmt.Errorf("failed to format getlist hook template: %w, %s", err, buf.Bytes())
+				}
+				WriteToFile(z.CrudLogicDir, hookFileName, formatted)
+				buf.Reset()
+			}
+		}
 	}
 
 	// Update
@@ -233,6 +299,25 @@ func (z *ZeroGen) GenerateCRUDLogic(
 	buf.Reset()
 	if z.CrudLogicDir != "" {
 		WriteToFile(z.CrudLogicDir, "update_"+tableName+"_logic.go", formatted)
+		if z.UpdateHook {
+			hookFileName := "update_hook_" + tableName + "_logic.go"
+			hookFilePath := filepath.Join(z.CrudLogicDir, hookFileName)
+			if _, err := os.Stat(hookFilePath); os.IsNotExist(err) {
+				hookTmpl, err := template.New("updateHookTemplate").Funcs(funcMap).Parse(string(updateHookTemplate))
+				if err != nil {
+					return "", fmt.Errorf("failed to parse update hook template: %w", err)
+				}
+				if err := hookTmpl.Execute(&buf, data); err != nil {
+					return "", fmt.Errorf("failed to execute update hook template: %w", err)
+				}
+				formatted, err = format.Source(buf.Bytes())
+				if err != nil {
+					return "", fmt.Errorf("failed to format update hook template: %w", err)
+				}
+				WriteToFile(z.CrudLogicDir, hookFileName, formatted)
+				buf.Reset()
+			}
+		}
 	}
 
 	return all.String(), nil

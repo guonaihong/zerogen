@@ -95,5 +95,8 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp 
 		}
 	}
 
+	{{ if .GetListHook }}
+		l.{{ .LogicName }}InsertAfter(req, resp)
+	{{ end }}
 	return resp, nil
 }

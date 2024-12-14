@@ -1,0 +1,20 @@
+package {{ .PackageName }}
+
+import (
+	{{- if .Imports }}
+	{{- range .Imports }}
+		{{- if hasSuffix . "types" }}
+		"{{ . }}"
+		{{- end }}
+	{{- end }}
+	{{- end }}
+)
+
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}InsertBefore(req *types.{{ .RequestType }}) (err error) {
+    return nil
+}
+
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}InsertAfter(req *types.{{ .RequestType }}, 
+resp *{{ .ResponseType }})(err error){
+    return nil
+}

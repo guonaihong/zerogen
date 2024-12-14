@@ -1,0 +1,22 @@
+package {{ .PackageName }}
+
+import (
+	{{- if .Imports }}
+	{{- range .Imports }}
+		{{- if not (or (hasSuffix . "mycopy") (hasSuffix . "svc")) }}
+		"{{ . }}"
+		{{- end }}
+	{{- end }}
+	{{- end }}
+)
+
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}InsertBefore({{ .ModelInstanceName }} *{{.ModelPkgName}}.{{ .ModelStruct }}, 
+req *types.{{ .RequestType }}) (err error) {
+    return nil
+}
+
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}InsertAfter({{ .ModelInstanceName }} *{{.ModelPkgName}}.{{ .ModelStruct }}, 
+req *types.{{ .RequestType }}, 
+resp *{{ .ResponseType }})(err error){
+    return nil
+}

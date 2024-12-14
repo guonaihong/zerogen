@@ -35,6 +35,12 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 		return nil, err
 	}
 
+	{{ if .CreateHook }}
+		err = l.{{ .LogicName }}InsertBefore(&{{ .ModelInstanceName }}, req)
+		if err != nil {
+			return nil, err
+		}
+	{{ end }}
 	// Save the {{ .ModelInstanceName }} to the database
 	err = l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName()).Create(&{{ .ModelInstanceName }}).Error
 	if err != nil {
@@ -45,6 +51,13 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 	// Prepare the response
 	resp = &{{ .ResponseType }}{}
 	resp.Data.Id = {{ if eq .IdFieldType "uuid" }}{{ .ModelInstanceName }}.Id.String(){{ else }}{{ .ModelInstanceName }}.Id{{ end }}
+
+	{{ if .CreateHook }}
+		err = l.{{ .LogicName }}InsertAfter(&{{.ModelInstanceName}}, req, resp)
+		if err != nil {
+			return nil, err
+		}
+	{{ end }}
 
 	return resp, nil
 }

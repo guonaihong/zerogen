@@ -28,12 +28,16 @@ func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
+	{{ if .GetByIdHook }}
+		l.{{ .LogicName }}InsertBefore(req)
+	{{ end }}
 	// Fetch the {{ .ModelStruct }} from the database
 	var {{ .ModelInstanceName }} {{.ModelPkgName}}.{{ .ModelStruct }}
 	if err := l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName()).Where("id = ?", req.{{ .IdFieldName }}).First(&{{ .ModelInstanceName }}).Error; err != nil {
 		l.Logger.Error("failed to get record from database", logx.Field("error", err))
 		return nil, err
 	}
+
 
 	// Copy fields from {{ .ModelStruct }} to {{ .ResponseType }}
 	resp = &{{ .ResponseType }}{}
@@ -43,5 +47,8 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 		return nil, err
 	}
 
+	{{ if .GetByIdHook }}
+		l.{{ .LogicName }}InsertAfter(req, resp)
+	{{ end }}
 	return resp, nil
 }

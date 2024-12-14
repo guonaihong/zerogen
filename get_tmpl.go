@@ -34,17 +34,29 @@ var copyTemplate []byte
 //go:embed tmpl/create.tmpl
 var createTemplate []byte
 
+//go:embed tmpl/create_hook.tmpl
+var createHookTemplate []byte
+
 //go:embed tmpl/delete.tmpl
 var deleteTemplate []byte
 
 //go:embed tmpl/getbyid.tmpl
 var getByIdTemplate []byte
 
+//go:embed tmpl/getbyid_hook.tmpl
+var getByIdHookTemplate []byte
+
 //go:embed tmpl/getlist.tmpl
 var getListTemplate []byte
 
+//go:embed tmpl/getlist_hook.tmpl
+var getListHookTemplate []byte
+
 //go:embed tmpl/update.tmpl
 var updateTemplate []byte
+
+//go:embed tmpl/update_hook.tmpl
+var updateHookTemplate []byte
 
 func getFileContent(fileName string, defaultContent []byte, homeDir string) ([]byte, error) {
 	var err error

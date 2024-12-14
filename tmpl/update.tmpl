@@ -36,6 +36,13 @@ func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *
 
 func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
 	// Convert the request struct to a map
+
+	{{ if .UpdateHook }}
+		err = l.{{ .LogicName }}InsertBefore(req)
+		if err != nil {
+			return nil, err
+		}
+	{{ end }}
 	conv := structs.New(req)
 	conv.TagName = "tomap"
 	m := conv.Map()
@@ -56,7 +63,12 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 		return nil, err
 	}
 
-
+	{{ if .UpdateHook }}
+		err = l.{{ .LogicName }}InsertAfter(req, resp)
+		if err != nil {
+			return nil, err
+		}
+	{{ end }}
 	// Prepare the response
 	return &{{ .ResponseType }}{}, nil
 }
