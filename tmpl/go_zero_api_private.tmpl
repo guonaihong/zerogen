@@ -68,12 +68,21 @@ type Get{{ .StructName }}ListReq {
 	{{ .FieldName }} {{ .FieldType }} `form:"{{ .JSONName }},optional"` {{- if .Comment }} // {{ .Comment }}{{ end }}
 	{{- end }}
 {{- end }}
+    Format      string `form:"format,optional,default=list,options=list|pagination|options"`
+    OptionLabel string `form:"optionLabel,optional"`
+    OptionValue string `form:"optionValue,optional"`
+}
+
+type Get{{ .StructName }}ListRespOptionItem {
+	Label string `json:"label"`
+	Value string `json:"value"`
 }
 
 // Get{{ .StructName }}ListResp defines the response for fetching a list of {{ .StructName }}.
 type Get{{ .StructName }}ListRespData {
 	Total int              `json:"total"` // Total number of records
 	Items  []{{ .StructName }} `json:"items"`  // items of {{ .StructName }}
+    Options []*Get{{ .StructName }}ListRespOptionItem `json:"omitempty,options"` 
 }
 
 type Get{{ .StructName }}ListResp {

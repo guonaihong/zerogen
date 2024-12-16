@@ -25,7 +25,7 @@ var typeMappingYAML []byte
 //go:embed tmpl/gorm_model.tmpl
 var defaultTemplate []byte
 
-//go:embed tmpl/go_zero_api.tmpl
+//go:embed tmpl/go_zero_api_private.tmpl
 var goZeroApiTemplate []byte
 
 //go:embed tmpl/copy.tmpl
@@ -46,7 +46,7 @@ var getByIdTemplate []byte
 //go:embed tmpl/getbyid_hook.tmpl
 var getByIdHookTemplate []byte
 
-//go:embed tmpl/getlist.tmpl
+//go:embed tmpl/getlist_private.tmpl
 var getListTemplate []byte
 
 //go:embed tmpl/getlist_hook.tmpl

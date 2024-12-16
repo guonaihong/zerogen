@@ -1,0 +1,148 @@
+package {{ .PackageName }}
+
+import (
+
+    "context"
+    "fmt"
+
+	{{- if .Imports }}
+	{{- range .Imports }}
+		"{{ . }}"
+	{{- end }}
+	{{- end }}
+
+	{{- range .Fields }}
+	{{- if contains (toLower .FieldName) "name" }}
+		"strings"
+		{{- break }}
+	{{- end }}
+	{{- end }}
+
+	"github.com/zeromicro/go-zero/core/logx"
+)
+
+type {{ .LogicName }}Logic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+}
+
+// New{{ .LogicName }}Logic creates a new instance of {{ .LogicName }}Logic
+func New{{ .LogicName }}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *{{ .LogicName }}Logic {
+	return &{{ .LogicName }}Logic{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
+	}
+}
+
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *{{ .RequestType }}) (resp *{{ .ResponseType }}, err error) {
+	var items []{{.ModelPkgName}}.{{ .ModelStruct }}
+
+	// Build the base query
+	query := l.svcCtx.DB.Table({{ .ModelPkgName }}.{{ .ModelStruct }}{}.TableName())
+
+	{{- range .Fields }}
+	{{- if (or (eq .FieldName "ID") (eq .FieldName "Id")) }}
+	if len(req.Ids) > 0 {
+		query = query.Where("{{ .SnakeCaseName }} in (?)", req.Ids)
+	}
+	{{- end }}
+
+	{{- if not (or (eq .FieldName "ID") (eq .FieldName "Id") (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
+	{{- if (or (eq .FieldType "int") (eq .FieldType "int16") (eq .FieldType "int64") (eq .FieldType "float32") (eq .FieldType "float64")) }}
+	if req.{{ .FieldName }} != 0 {
+		query = query.Where("{{ .SnakeCaseName }} = ?", req.{{ .FieldName }})
+	}
+	{{- else if (eq .FieldType "string") }}
+	if len(req.{{ .FieldName }}) > 0 {
+		{{- if contains (toLower .FieldName) "name" }}
+		query = query.Where("{{ .SnakeCaseName }} LIKE ?", "%" + strings.ToLower(req.{{ .FieldName }}) + "%")
+		{{- else }}
+		query = query.Where("{{ .SnakeCaseName }} = ?", req.{{ .FieldName }})
+		{{- end }}
+	}
+	{{- else if (eq .FieldType "[]string") }}
+	if len(req.{{ .FieldName }}) > 0 {
+		query = query.Where("{{ .SnakeCaseName }} in (?)", req.{{ .FieldName }})
+	}
+	{{- end }}
+	{{- end }}
+	{{- end }}
+
+	// Get total count
+	var total int64
+	if err = query.Where("deleted_at IS NULL").Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// Apply pagination
+	pageNum := req.PageNum
+	pageSize := req.PageSize
+	if pageNum <= 0 {
+		pageNum = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+	offset := (pageNum - 1) * pageSize
+	query = query.Offset(offset).Limit(pageSize)
+
+	// Execute the query
+	if err = query.Find(&items).Error; err != nil {
+		return nil, err
+	}
+
+	if req.Format == "options" {
+		resp = &{{ .ResponseType }}{
+			Data: {{ .ResponseType }}Data{
+				Total: int(total),
+			},
+		}
+		options := []*types.{{ .LogicName }}RespOptionItem{}
+		for _, item := range items {
+			label := l.getFieldValue(req.OptionLabel, item)
+			value := l.getFieldValue(req.OptionValue, item)
+			options = append(options, &types.{{ .LogicName }}RespOptionItem{
+				Label: label, // Ensure type conversion here
+				Value: value,
+			})
+		}
+		resp.Data.Options = options
+	} else {
+		// Initialize response
+		resp = &{{ .ResponseType }}{
+			Data: {{ .ResponseType }}Data{
+				Items: make([]types.{{ .ModelStruct }}, 0, len(items)),
+				Total: int(total),
+			},
+		}
+
+		// Copy model data to response type
+		for _, item := range items {
+			var tempItem types.{{ .ModelStruct }}
+			if err = mycopy.CopyModels{{ .ModelStruct }}ToTypes{{ .ModelStruct }}(&tempItem, &item); err != nil {
+				return nil, err
+			}
+			resp.Data.Items = append(resp.Data.Items, tempItem)
+		}
+	}
+
+	{{- if .GetListHook }}
+	l.{{ .LogicName }}InsertAfter(req, resp)
+	{{- end }}
+
+	return resp, nil
+}
+
+func (l *{{ .LogicName }}Logic) getFieldValue(field string, record {{ .ModelPkgName }}.{{ .ModelStruct }}) string {
+    switch field {
+    {{- range .Fields }}
+    {{- if not (or (eq .FieldName "CreatedAt") (eq .FieldName "UpdatedAt") (eq .FieldName "DeletedAt")) }}
+    case "{{ .JSONName}}":
+        return fmt.Sprintf("%v", record.{{ .FieldName }})
+    {{- end }}
+    {{- end }}
+    }
+    return ""
+}

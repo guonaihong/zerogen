@@ -2,7 +2,6 @@ package {{ .PackageName }}
 
 import (
 	"context"
-
 	{{- if .Imports }}
 	{{- range .Imports }}
 		"{{ . }}"
