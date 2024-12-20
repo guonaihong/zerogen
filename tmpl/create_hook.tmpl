@@ -11,8 +11,8 @@ import (
 )
 
 func (l *{{ .LogicName }}Logic) {{ .LogicName }}InsertBefore({{ .ModelInstanceName }} *{{.ModelPkgName}}.{{ .ModelStruct }}, 
-req *types.{{ .RequestType }}) (err error) {
-    return nil
+req *types.{{ .RequestType }}) (err error, skip bool) {
+    return nil, false
 }
 
 func (l *{{ .LogicName }}Logic) {{ .LogicName }}InsertAfter({{ .ModelInstanceName }} *{{.ModelPkgName}}.{{ .ModelStruct }}, 

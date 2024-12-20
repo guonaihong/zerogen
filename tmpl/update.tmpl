@@ -38,9 +38,12 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 	// Convert the request struct to a map
 
 	{{ if .UpdateHook }}
-		err = l.{{ .LogicName }}InsertBefore(req)
+		err, skip := l.{{ .LogicName }}InsertBefore(req)
 		if err != nil {
 			return nil, err
+		}
+		if skip {
+			return &{{ .ResponseType }}{}, nil
 		}
 	{{ end }}
 	conv := structs.New(req)

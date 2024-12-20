@@ -10,8 +10,8 @@ import (
 	{{- end }}
 )
 
-func (l *{{ .LogicName }}Logic) {{ .LogicName }}InsertBefore(req *types.{{ .RequestType }}) (err error) {
-    return nil
+func (l *{{ .LogicName }}Logic) {{ .LogicName }}InsertBefore(req *types.{{ .RequestType }}) (err error, skip bool) {
+    return nil, false
 }
 
 func (l *{{ .LogicName }}Logic) {{ .LogicName }}InsertAfter(req *types.{{ .RequestType }}, 

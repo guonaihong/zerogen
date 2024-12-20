@@ -36,9 +36,12 @@ func (l *{{ .LogicName }}Logic) {{ .LogicName }}(req *types.{{ .RequestType }}) 
 	}
 
 	{{ if .CreateHook }}
-		err = l.{{ .LogicName }}InsertBefore(&{{ .ModelInstanceName }}, req)
+		err, skip := l.{{ .LogicName }}InsertBefore(&{{ .ModelInstanceName }}, req)
 		if err != nil {
 			return nil, err
+		}
+		if skip {
+			return &{{ .ResponseType }}{} , nil
 		}
 	{{ end }}
 	// Save the {{ .ModelInstanceName }} to the database
